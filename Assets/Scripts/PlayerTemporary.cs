@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerTemporary : MonoBehaviour
@@ -15,6 +17,15 @@ public class PlayerTemporary : MonoBehaviour
     
     */
 
+    private Rigidbody2D rb2d;
+    private SpriteRenderer sprdr;
+
+
+    private float movementSpeed = 30;
+    
+    private float moveInput;
+
+
     void Awake()
     {
      /*
@@ -29,18 +40,29 @@ public class PlayerTemporary : MonoBehaviour
 
      */
 
-      
+    rb2d = GetComponent<Rigidbody2D>();
+    sprdr = GetComponent<SpriteRenderer>();
+
     }
 
 
     void Update()
     {
+        moveInput = Input.GetAxisRaw("Horizontal");
+
+         if (moveInput > 0)
+            sprdr.flipX = false;
+        else if (moveInput < 0)
+            sprdr.flipX = true;
+
         // runs every per frame
     }
 
     void FixedUpdate()
     {
         // faster than physics
+        rb2d.linearVelocity = new Vector2(moveInput * movementSpeed, rb2d.linearVelocity.y);
+
     }
 
     void LateUpdate()
