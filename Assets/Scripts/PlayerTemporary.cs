@@ -28,6 +28,7 @@ public class PlayerTemporary : MonoBehaviour
 
 
     public bool isDebounce = false;
+    public bool Dash = false;
 
 
 
@@ -121,14 +122,18 @@ public class PlayerTemporary : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha1) && !isDebounce)
+        if (Input.GetKeyDown(KeyCode.Alpha1) && !isDebounce)     //대쉬(임시)
         {
+            Dash = true;
+            rb2d.AddForce(new Vector2(10f, 0), ForceMode2D.Impulse);
             if (!Cooldownlist.Contains("Skill1CD"))
-            {
+            {   
                 isDebounce = true;
                 Debug.Log("Skill 1 Activated");
+                AddDataToList("Dash", Stunlist, 0.2f);
                 AddDataToList("Skill1CD", Cooldownlist, 3f);
                 StartCoroutine(ResetDebounce(0.5f));
+                StartCoroutine(ExecuteAttack(new Vector2(5f, 0f), new Vector2(6f, 3f), 0.5f, 0f, false));
             }
         }
 
@@ -146,8 +151,10 @@ public class PlayerTemporary : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!Stunlist.Contains("Stun"))
+        if (!Stunlist.Contains("Stun") && !Stunlist.Contains("Dash"))
+        {
             rb2d.linearVelocity = new Vector2(moveInput * movementSpeed, rb2d.linearVelocity.y);
+        }
     }
 
     private IEnumerator ResetDebounce(float delay)
@@ -173,7 +180,7 @@ public class PlayerTemporary : MonoBehaviour
 
         if (isDownSmash)
         {
-            rb2d.linearVelocity = new Vector2(0, -40f); 
+            rb2d.linearVelocity = new Vector2(0, -40f);
         }
         else
         {
