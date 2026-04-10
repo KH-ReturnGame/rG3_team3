@@ -9,8 +9,6 @@ public class Manager : MonoBehaviour
 
     public static Manager Instance;
 
-    
-
     public GameObject scenemanager;
 
     void Awake()
