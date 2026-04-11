@@ -36,6 +36,12 @@ public class PlayerTemporary : MonoBehaviour
     private bool isGrounded;
     public Transform groundCheck;
     public float checkRadius = 0.2f;
+    public float look = 0f;
+    public float nowchar = 1;
+    //2번째 캐릭터 스킬 변수
+    public float punchup = 1; 
+    public float punchupstack = 0;
+    public float defend = 0;
     public LayerMask whatIsGround;
 
     void Awake()
@@ -109,11 +115,11 @@ public class PlayerTemporary : MonoBehaviour
 
                 if (!isGrounded && isDowntilt)
                 {
-                    StartCoroutine(ExecuteAttack(new Vector2(0f, -2f), new Vector2(8f, 4f), 0.15f, 40f, true));
+                    StartCoroutine(ExecuteAttack(new Vector2(0f, -2f), new Vector2(8f, 4f), 0.15f, 40f, true, 0f, 140f));
                 }
                 else
                 {
-                    StartCoroutine(ExecuteAttack(new Vector2(2f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false));
+                    StartCoroutine(ExecuteAttack(new Vector2(0f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 0f, 0f));
                 }
 
                 AddDataToList("LightCooldown", Cooldownlist, 0.26f);
@@ -121,32 +127,97 @@ public class PlayerTemporary : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha1) && !isDebounce)
+        if (Input.GetKeyDown(KeyCode.Alpha1) && !Stunlist.Contains("Stun"))    //캐릭터 교체
         {
-            if (!Cooldownlist.Contains("Skill1CD"))
+            nowchar = 1;
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha2) && !Stunlist.Contains("Stun"))
+        {
+            nowchar = 2;
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha3) && !Stunlist.Contains("Stun"))
+        {
+            nowchar = 3;
+        }
+        else if(Input.GetKeyDown(KeyCode.Alpha4) && !Stunlist.Contains("Stun"))
+        {
+            nowchar = 4;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Q) && !isDebounce)  //Q스킬
+        {
+            if(nowchar == 1)  
             {
-                isDebounce = true;
-                Debug.Log("Skill 1 Activated");
-                AddDataToList("Skill1CD", Cooldownlist, 3f);
-                StartCoroutine(ResetDebounce(0.5f));
+            }
+            else if (nowchar == 2)
+            {
+                if (!Cooldownlist.Contains("SkillQCD_2"))
+                {
+                    AddDataToList("SkillQCD_2", Cooldownlist, 10f);
+                    punchup = 30f;
+                    punchupstack = 3;
+                }
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.Alpha2) && !isDebounce)
+        if (Input.GetKeyDown(KeyCode.W) && !isDebounce)   //W스킬
         {
-            if (!Cooldownlist.Contains("Skill2CD"))
+            if(nowchar == 1)
             {
+                if (!Cooldownlist.Contains("SkillWCD_1"))
+                {
                 isDebounce = true;
-                Debug.Log("Skill 2 Activated");
-                AddDataToList("Skill2CD", Cooldownlist, 5f);
+                look = sprdr.flipX ? -1f : 1f;
+                Debug.Log("Skill W Activated");
+                StartCoroutine(Dashdown(0.25f));
+                AddDataToList("SkillWCD_1", Cooldownlist, 5f);
+                AddDataToList("Dash", Cooldownlist, 0.5f);
+                rb2d.AddForce(new Vector2(look*2f,15f), ForceMode2D.Impulse);
                 StartCoroutine(ResetDebounce(0.5f));
+                StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 5f, 7f));
+                }
             }
+            else if(nowchar == 2)
+            {
+                if (!Cooldownlist.Contains("SkillWCD_2"))
+                {
+                    AddDataToList("SkillWCD_2", Cooldownlist, 10f);
+                    StartCoroutine(Defend_2(80,5));
+                }
+            }
+        }
+        
+        if (Input.GetKeyDown(KeyCode.E) && !isDebounce)  //E스킬
+        {
+            if(nowchar == 1)
+            {
+                
+            }
+            else if(nowchar == 2)
+            {
+                if (!Cooldownlist.Contains("SkillQCD_2"))
+                {
+                isDebounce = true;
+                look = sprdr.flipX ? -1f : 1f;
+                Debug.Log("Skill Q Activated");
+                AddDataToList("SkillQCD_2", Cooldownlist, 3f);
+                AddDataToList("Dash", Cooldownlist, 0.2f);
+                rb2d.AddForce(new Vector2(look*20f,0f), ForceMode2D.Impulse);
+                StartCoroutine(ResetDebounce(0.5f));
+                StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 15f, 0f));
+                }
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.R) && !isDebounce)  //R스킬
+        {
+            
         }
     }
 
     void FixedUpdate()
     {
-        if (!Stunlist.Contains("Stun"))
+        if (!Stunlist.Contains("Stun") && !Cooldownlist.Contains("Dash"))
             rb2d.linearVelocity = new Vector2(moveInput * movementSpeed, rb2d.linearVelocity.y);
     }
 
@@ -166,8 +237,24 @@ public class PlayerTemporary : MonoBehaviour
             dataList.Remove(dataName);
         }
     }
+    private IEnumerator Dashdown(float duration)
+    {
+        {
+            yield return new WaitForSeconds(duration);
+            rb2d.AddForce(new Vector2(0f, -10f), ForceMode2D.Impulse);
+        }
+    }
 
-    private IEnumerator ExecuteAttack(Vector2 offset, Vector2 size, float duration, float damage, bool isDownSmash)
+    private IEnumerator Defend_2(float Defend, float duration)
+    {
+        {
+            defend = Defend;
+            yield return new WaitForSeconds(duration);
+            defend = 0;
+        }
+    }
+
+    private IEnumerator ExecuteAttack(Vector2 offset, Vector2 size, float duration, float damage, bool isDownSmash, float Force_x, float Force_y)
     {
         float dir = sprdr.flipX ? -1f : 1f;
 
@@ -204,17 +291,17 @@ public class PlayerTemporary : MonoBehaviour
                         {
         
                             enemyRb.linearVelocity = Vector2.zero;
-                            enemyRb.AddForce(Vector2.down * 140f, ForceMode2D.Impulse);
+                            enemyRb.AddForce(Vector2.down * Force_y, ForceMode2D.Impulse);
                             Debug.Log("DOWN SMASH!");
                         }
                         else if (isUptilt)
                         {
                             enemyRb.linearVelocity = Vector2.zero;
-                            enemyRb.AddForce(Vector2.up * 25f, ForceMode2D.Impulse);
+                            enemyRb.AddForce(Vector2.up * Force_y, ForceMode2D.Impulse);
                         }
                         else
                         {
-                            enemyRb.AddForce(new Vector2(dir * 10f, 0), ForceMode2D.Impulse);
+                            enemyRb.AddForce(new Vector2(dir * Force_x, Force_y), ForceMode2D.Impulse);
                         }
                     }
                 }
