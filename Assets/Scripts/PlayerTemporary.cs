@@ -38,9 +38,12 @@ public class PlayerTemporary : MonoBehaviour
     public float checkRadius = 0.2f;
     public float look = 0f;
     public float nowchar = 1;
+    //1번째 캐릭터 변수
+    public int stack_char1 = 0; //적이 받는 스택
+    public int stack_Q_char1 = 3;
     //2번째 캐릭터 스킬 변수
     public float punchup = 1; 
-    public float punchupstack = 0;
+    public int punchupstack = 0;
     public float defend = 0;
     public LayerMask whatIsGround;
 
@@ -97,7 +100,7 @@ public class PlayerTemporary : MonoBehaviour
 
         if (Combo == 3)
         {
-            AddDataToList("LightCooldown", Cooldownlist, 0.7f);
+            AddDataToList("LightCooldown", Cooldownlist, 0.7f, 0);
             Combo = 0;
             Debug.Log("COMBO RESET DUE TO END OF STACK");
         }
@@ -115,14 +118,14 @@ public class PlayerTemporary : MonoBehaviour
 
                 if (!isGrounded && isDowntilt)
                 {
-                    StartCoroutine(ExecuteAttack(new Vector2(0f, -2f), new Vector2(8f, 4f), 0.15f, 40f, true, 0f, 140f));
+                    StartCoroutine(ExecuteAttack(new Vector2(0f, -2f), new Vector2(8f, 4f), 0.15f, 40f, true, 0f, 140f, 0));
                 }
                 else
                 {
-                    StartCoroutine(ExecuteAttack(new Vector2(0f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 0f, 0f));
+                    StartCoroutine(ExecuteAttack(new Vector2(0f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 0f, 0f, 0));
                 }
 
-                AddDataToList("LightCooldown", Cooldownlist, 0.26f);
+                AddDataToList("LightCooldown", Cooldownlist, 0.26f, 0);
                 StartCoroutine(ResetDebounce(0.26f));
             }
         }
@@ -146,14 +149,21 @@ public class PlayerTemporary : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Q) && !isDebounce)  //Q스킬
         {
-            if(nowchar == 1)  
+            if(nowchar == 1)
             {
+                if(stack_Q_char1 != 0)
+                {
+                    stack_Q_char1 -= 1;
+                    AddDataToList("SkillQCD_1", Cooldownlist, 7f, 1);
+                    Debug.Log("Skill Q_1 Activated");
+                }
             }
             else if (nowchar == 2)
             {
                 if (!Cooldownlist.Contains("SkillQCD_2"))
                 {
-                    AddDataToList("SkillQCD_2", Cooldownlist, 10f);
+                    AddDataToList("SkillQCD_2", Cooldownlist, 10f, 0);
+                    Debug.Log("Skill Q_2 Activated");
                     punchup = 30f;
                     punchupstack = 3;
                 }
@@ -168,21 +178,37 @@ public class PlayerTemporary : MonoBehaviour
                 {
                 isDebounce = true;
                 look = sprdr.flipX ? -1f : 1f;
-                Debug.Log("Skill W Activated");
+                Debug.Log("Skill W_1 Activated");
                 StartCoroutine(Dashdown(0.25f));
-                AddDataToList("SkillWCD_1", Cooldownlist, 5f);
-                AddDataToList("Dash", Cooldownlist, 0.5f);
-                rb2d.AddForce(new Vector2(look*2f,15f), ForceMode2D.Impulse);
+                AddDataToList("SkillWCD_1", Cooldownlist, 5f, 0);
+                AddDataToList("Dash", Cooldownlist, 0.6f, 0);
+                rb2d.AddForce(new Vector2(look*0.13f,15f), ForceMode2D.Impulse);
                 StartCoroutine(ResetDebounce(0.5f));
-                StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 5f, 7f));
+                StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 5f, 7f, 0));
                 }
             }
             else if(nowchar == 2)
             {
                 if (!Cooldownlist.Contains("SkillWCD_2"))
                 {
-                    AddDataToList("SkillWCD_2", Cooldownlist, 10f);
+                    AddDataToList("SkillWCD_2", Cooldownlist, 10f, 0);
                     StartCoroutine(Defend_2(80,5));
+                    Debug.Log("Skill W_2 Activated");
+                }
+            }
+            else if (nowchar == 3)
+            {
+                if (!Cooldownlist.Contains("SkillWCD_3"))
+                {
+                isDebounce = true;
+                look = sprdr.flipX ? -1f : 1f;
+                Debug.Log("Skill W_3 Activated");
+                StartCoroutine(Dashdown(0.25f));
+                AddDataToList("SkillWCD_3", Cooldownlist, 5f, 0);
+                AddDataToList("Dash", Cooldownlist, 0.6f, 0);
+                rb2d.AddForce(new Vector2(look*0.13f,15f), ForceMode2D.Impulse);
+                StartCoroutine(ResetDebounce(0.5f));
+                StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 5f, 7f, 0));
                 }
             }
         }
@@ -200,11 +226,11 @@ public class PlayerTemporary : MonoBehaviour
                 isDebounce = true;
                 look = sprdr.flipX ? -1f : 1f;
                 Debug.Log("Skill Q Activated");
-                AddDataToList("SkillQCD_2", Cooldownlist, 3f);
-                AddDataToList("Dash", Cooldownlist, 0.2f);
+                AddDataToList("SkillQCD_2", Cooldownlist, 3f, 0);
+                AddDataToList("Dash", Cooldownlist, 0.2f, 0);
                 rb2d.AddForce(new Vector2(look*20f,0f), ForceMode2D.Impulse);
                 StartCoroutine(ResetDebounce(0.5f));
-                StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 15f, 0f));
+                StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 15f, 0f, 0));
                 }
             }
         }
@@ -227,7 +253,7 @@ public class PlayerTemporary : MonoBehaviour
         isDebounce = false;
     }
 
-    private void AddDataToList(string dataName, List<string> dataList, float duration)
+    private void AddDataToList(string dataName, List<string> dataList, float duration, float logic)
     {
         StartCoroutine(Activate());
         IEnumerator Activate()
@@ -235,13 +261,17 @@ public class PlayerTemporary : MonoBehaviour
             dataList.Add(dataName);
             yield return new WaitForSeconds(duration);
             dataList.Remove(dataName);
+            if (logic == 1)
+            {
+                stack_Q_char1 += 1;
+            }
         }
     }
     private IEnumerator Dashdown(float duration)
     {
         {
             yield return new WaitForSeconds(duration);
-            rb2d.AddForce(new Vector2(0f, -10f), ForceMode2D.Impulse);
+            rb2d.AddForce(new Vector2(0f, -20f), ForceMode2D.Impulse);
         }
     }
 
@@ -254,7 +284,7 @@ public class PlayerTemporary : MonoBehaviour
         }
     }
 
-    private IEnumerator ExecuteAttack(Vector2 offset, Vector2 size, float duration, float damage, bool isDownSmash, float Force_x, float Force_y)
+    private IEnumerator ExecuteAttack(Vector2 offset, Vector2 size, float duration, float damage, bool isDownSmash, float Force_x, float Force_y, int logic)
     {
         float dir = sprdr.flipX ? -1f : 1f;
 
@@ -302,6 +332,10 @@ public class PlayerTemporary : MonoBehaviour
                         else
                         {
                             enemyRb.AddForce(new Vector2(dir * Force_x, Force_y), ForceMode2D.Impulse);
+                        }
+                        if(nowchar == 1)
+                        {
+                            //enemyRb.stack_char1 += 1;
                         }
                     }
                 }
