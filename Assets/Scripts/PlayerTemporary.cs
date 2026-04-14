@@ -153,8 +153,10 @@ public class PlayerTemporary : MonoBehaviour
             {
                 if(stack_Q_char1 != 0)
                 {
+                    isDebounce = true;
                     stack_Q_char1 -= 1;
                     AddDataToList("SkillQCD_1", Cooldownlist, 7f, 1);
+                    StartCoroutine(ResetDebounce(0.2f));
                     Debug.Log("Skill Q_1 Activated");
                 }
             }
@@ -162,10 +164,12 @@ public class PlayerTemporary : MonoBehaviour
             {
                 if (!Cooldownlist.Contains("SkillQCD_2"))
                 {
+                    isDebounce = true;
                     AddDataToList("SkillQCD_2", Cooldownlist, 10f, 0);
                     Debug.Log("Skill Q_2 Activated");
                     punchup = 30f;
                     punchupstack = 3;
+                    isDebounce = false;
                 }
             }
         }
@@ -191,9 +195,11 @@ public class PlayerTemporary : MonoBehaviour
             {
                 if (!Cooldownlist.Contains("SkillWCD_2"))
                 {
+                    isDebounce = true;
                     AddDataToList("SkillWCD_2", Cooldownlist, 10f, 0);
                     StartCoroutine(Defend_2(80,5));
                     Debug.Log("Skill W_2 Activated");
+                    isDebounce = false;
                 }
             }
             else if (nowchar == 3)
