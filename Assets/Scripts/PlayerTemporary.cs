@@ -29,9 +29,14 @@ public class PlayerTemporary : MonoBehaviour
 
     public bool isDebounce = false;
 
+    private int jumpCount = 0;
+    public int maxJumpCount = 2;
 
-
-
+    public bool isStun = false;
+    private bool isDashing = false;
+    private float dashCooldown = 2f;
+    private float dashCancelCooldown = 10f;
+    private float dashForce = 30f;
 
     private bool isGrounded;
     public Transform groundCheck;
@@ -67,10 +72,17 @@ public class PlayerTemporary : MonoBehaviour
         {
             moveInput = Input.GetAxisRaw("Horizontal");
             
-            if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+            if (isGrounded)
             {
-                rb2d.linearVelocity = new Vector2(rb2d.linearVelocity.x, jumpForce);
+                jumpCount = 0; 
             }
+            
+            if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+                if (isGrounded || jumpCount < maxJumpCount)
+                {
+                    rb2d.linearVelocity = new Vector2(rb2d.linearVelocity.x, jumpForce);
+                    jumpCount++;
+                }
         }
 
         if (moveInput > 0)
@@ -120,7 +132,25 @@ public class PlayerTemporary : MonoBehaviour
                 StartCoroutine(ResetDebounce(0.26f));
             }
         }
-
+        
+        if (Input.GetKeyDown(KeyCode.LeftControl) && !isDebounce && !isStun)
+        {
+            if (!Cooldownlist.Contains("DashCD"))
+            {
+                StartCoroutine(PerformDash());
+            }
+        }
+        
+        if (Input.GetKeyDown(KeyCode.LeftShift))
+        {
+            if (!Cooldownlist.Contains("DashCancelCD"))
+            {
+                rb2d.linearVelocity = Vector2.zero;
+                AddDataToList("DashCancelCD", Cooldownlist, 10f);
+                Debug.Log("대쉬 캔슬 발동");
+            }
+        }
+        
         if (Input.GetKeyDown(KeyCode.Alpha1) && !isDebounce)
         {
             if (!Cooldownlist.Contains("Skill1CD"))
@@ -146,8 +176,10 @@ public class PlayerTemporary : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!Stunlist.Contains("Stun"))
+        if (!Stunlist.Contains("Stun") && !isStun)
+        {
             rb2d.linearVelocity = new Vector2(moveInput * movementSpeed, rb2d.linearVelocity.y);
+        }
     }
 
     private IEnumerator ResetDebounce(float delay)
@@ -224,6 +256,35 @@ public class PlayerTemporary : MonoBehaviour
         }
     }
 
+    private IEnumerator PerformDash()
+    {
+        isDebounce = true;
+        
+        float x = Input.GetAxisRaw("Horizontal"); // A(-1), D(1)
+        float y = Input.GetAxisRaw("Vertical");   // S(-1), W(1)
+        
+        if (Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.Space))
+        {
+            x = 1f;
+            y = 1f;
+        }
+        
+        Vector2 dashDir = new Vector2(x, y).normalized;
+        
+        if (dashDir == Vector2.zero)
+        {
+            dashDir = new Vector2(sprdr.flipX ? -1f : 1f, 0);
+        }
+        
+        rb2d.linearVelocity = dashDir * dashForce;
+        
+        AddDataToList("DashCD", Cooldownlist, 2f);
+        
+        yield return new WaitForSeconds(0.2f);
+
+        isDebounce = false;
+    }
+    
     private void OnDrawGizmos()
     {
         if (sprdr == null) return;
