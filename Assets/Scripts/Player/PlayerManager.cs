@@ -31,6 +31,7 @@ public class PlayerManager : MonoBehaviour
     [Header("상태리스트")]
     public List<string> Stunlist = new List<string>();
     public List<string> Cooldownlist = new List<string>();
+    public List<string> Frameslist = new List<string>(); // Armor, Hyperarmor 보관 
 
 
 
