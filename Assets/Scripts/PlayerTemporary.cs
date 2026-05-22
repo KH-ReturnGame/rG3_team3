@@ -124,6 +124,7 @@ public class PlayerTemporary : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Alpha1) && !isDebounce)     //�뽬(�ӽ�)
         {
+<<<<<<< HEAD
             Dash = true;
             rb2d.AddForce(new Vector2(10f, 0), ForceMode2D.Impulse);
             if (!Cooldownlist.Contains("Skill1CD"))
@@ -134,6 +135,43 @@ public class PlayerTemporary : MonoBehaviour
                 AddDataToList("Skill1CD", Cooldownlist, 3f);
                 StartCoroutine(ResetDebounce(0.5f));
                 StartCoroutine(ExecuteAttack(new Vector2(5f, 0f), new Vector2(6f, 3f), 0.5f, 0f, false));
+=======
+            nowchar = 1;
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha2) && !Stunlist.Contains("Stun"))
+        {
+            nowchar = 2;
+        }
+        else if (Input.GetKeyDown(KeyCode.Alpha3) && !Stunlist.Contains("Stun"))
+        {
+            nowchar = 3;
+        }
+        else if(Input.GetKeyDown(KeyCode.Alpha4) && !Stunlist.Contains("Stun"))
+        {
+            nowchar = 4;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Q) && !isDebounce)  //Q스킬
+        {
+            if(nowchar == 1)
+            {
+                if(stack_Q_char1 != 0)
+                {
+                    stack_Q_char1 -= 1;
+                    AddDataToList("SkillQCD_1", Cooldownlist, 7f, 1);
+                    Debug.Log("Skill Q_1 Activated");
+                }
+            }
+            else if (nowchar == 2)
+            {
+                if (!Cooldownlist.Contains("SkillQCD_2"))
+                {
+                    AddDataToList("SkillQCD_2", Cooldownlist, 10f, 0);
+                    Debug.Log("Skill Q_2 Activated");
+                    punchup = 30f;
+                    punchupstack = 3;
+                }
+>>>>>>> parent of 3fd8d68 (isDebounce 적용)
             }
         }
 
@@ -146,6 +184,60 @@ public class PlayerTemporary : MonoBehaviour
                 AddDataToList("Skill2CD", Cooldownlist, 5f);
                 StartCoroutine(ResetDebounce(0.5f));
             }
+<<<<<<< HEAD
+=======
+            else if(nowchar == 2)
+            {
+                if (!Cooldownlist.Contains("SkillWCD_2"))
+                {
+                    AddDataToList("SkillWCD_2", Cooldownlist, 10f, 0);
+                    StartCoroutine(Defend_2(80,5));
+                    Debug.Log("Skill W_2 Activated");
+                }
+            }
+            else if (nowchar == 3)
+            {
+                if (!Cooldownlist.Contains("SkillWCD_3"))
+                {
+                isDebounce = true;
+                look = sprdr.flipX ? -1f : 1f;
+                Debug.Log("Skill W_3 Activated");
+                StartCoroutine(Dashdown(0.25f));
+                AddDataToList("SkillWCD_3", Cooldownlist, 5f, 0);
+                AddDataToList("Dash", Cooldownlist, 0.6f, 0);
+                rb2d.AddForce(new Vector2(look*0.13f,15f), ForceMode2D.Impulse);
+                StartCoroutine(ResetDebounce(0.5f));
+                StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 5f, 7f, 0));
+                }
+            }
+        }
+        
+        if (Input.GetKeyDown(KeyCode.E) && !isDebounce)  //E스킬
+        {
+            if(nowchar == 1)
+            {
+                
+            }
+            else if(nowchar == 2)
+            {
+                if (!Cooldownlist.Contains("SkillQCD_2"))
+                {
+                isDebounce = true;
+                look = sprdr.flipX ? -1f : 1f;
+                Debug.Log("Skill Q Activated");
+                AddDataToList("SkillQCD_2", Cooldownlist, 3f, 0);
+                AddDataToList("Dash", Cooldownlist, 0.2f, 0);
+                rb2d.AddForce(new Vector2(look*20f,0f), ForceMode2D.Impulse);
+                StartCoroutine(ResetDebounce(0.5f));
+                StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 15f, 0f, 0));
+                }
+            }
+        }
+
+        if (Input.GetKeyDown(KeyCode.R) && !isDebounce)  //R스킬
+        {
+            
+>>>>>>> parent of 3fd8d68 (isDebounce 적용)
         }
     }
 
