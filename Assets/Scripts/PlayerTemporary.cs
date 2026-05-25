@@ -8,8 +8,11 @@ public class PlayerTemporary : MonoBehaviour
     private SpriteRenderer sprdr;
     private Animator animtr;
 
+    private Transform playerTransForm;
+
     private float movementSpeed = 10;
     private float jumpForce = 25f;
+    public LayerMask Enemy;
 
 
 
@@ -39,7 +42,8 @@ public class PlayerTemporary : MonoBehaviour
     public float look = 0f;
     public float nowchar = 1;
     //1번째 캐릭터 변수
-    public int stack_char1 = 0; //적이 받는 스택
+    private Dictionary<Collider2D, float> enemyStackRegister = new Dictionary<Collider2D, float>();
+    public float stack_char1 = 0; //적이 받는 스택
     public int stack_Q_char1 = 3;
     //2번째 캐릭터 스킬 변수
     public float punchup = 1; 
@@ -158,6 +162,8 @@ public class PlayerTemporary : MonoBehaviour
                     AddDataToList("SkillQCD_1", Cooldownlist, 7f, 1);
                     StartCoroutine(ResetDebounce(0.2f));
                     Debug.Log("Skill Q_1 Activated");
+                    StartCoroutine(ExecuteAttack(new Vector2(1f, 0f), new Vector2(2f, 3f), 0.15f, 100f, false, 0f, 0f, 1f));
+                    isDebounce = false;
                 }
             }
             else if (nowchar == 2)
@@ -181,14 +187,10 @@ public class PlayerTemporary : MonoBehaviour
                 if (!Cooldownlist.Contains("SkillWCD_1"))
                 {
                 isDebounce = true;
-                look = sprdr.flipX ? -1f : 1f;
                 Debug.Log("Skill W_1 Activated");
-                StartCoroutine(Dashdown(0.25f));
                 AddDataToList("SkillWCD_1", Cooldownlist, 5f, 0);
-                AddDataToList("Dash", Cooldownlist, 0.6f, 0);
-                rb2d.AddForce(new Vector2(look*0.13f,15f), ForceMode2D.Impulse);
-                StartCoroutine(ResetDebounce(0.5f));
-                StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 5f, 7f, 0));
+                TeleportLogic(0.3f, Enemy);
+                isDebounce = false;
                 }
             }
             else if(nowchar == 2)
@@ -207,14 +209,15 @@ public class PlayerTemporary : MonoBehaviour
                 if (!Cooldownlist.Contains("SkillWCD_3"))
                 {
                 isDebounce = true;
+                Debug.Log("Skill W_1 Activated");
+                AddDataToList("SkillWCD_1", Cooldownlist, 5f, 0);
+                GameObject player = GameObject.Find("Player");
+                Vector2 player_position = player.transform.position;
                 look = sprdr.flipX ? -1f : 1f;
-                Debug.Log("Skill W_3 Activated");
-                StartCoroutine(Dashdown(0.25f));
-                AddDataToList("SkillWCD_3", Cooldownlist, 5f, 0);
-                AddDataToList("Dash", Cooldownlist, 0.6f, 0);
-                rb2d.AddForce(new Vector2(look*0.13f,15f), ForceMode2D.Impulse);
-                StartCoroutine(ResetDebounce(0.5f));
-                StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 5f, 7f, 0));
+    
+                float x = player_position.x;
+                float y = player_position.y;
+                StartCoroutine(Bezier_Curves(x+13f*look,y+14f,x+15f*look,y,0.8f));
                 }
             }
         }
@@ -289,8 +292,46 @@ public class PlayerTemporary : MonoBehaviour
             defend = 0;
         }
     }
+    private IEnumerator Bezier_Curves(float base_x, float base_y, float finish_x, float finish_y, float duration)
+    {
+        float t = 0f;
+        GameObject player = GameObject.Find("Player");
+    
+        if (player == null)
+        {
+            Debug.LogError("Player를 찾을 수 없습니다!");
+            yield break;
+        }
 
-    private IEnumerator ExecuteAttack(Vector2 offset, Vector2 size, float duration, float damage, bool isDownSmash, float Force_x, float Force_y, int logic)
+        Vector2 player_position = player.transform.position;
+        playerTransForm = player.transform;
+    
+        float start_x = player_position.x;
+        float start_y = player_position.y;
+
+        while (t <= duration)
+        {
+            t += Time.deltaTime;
+            float devide = t / duration;
+        
+            if (devide > 1f) devide = 1f;
+
+            float main_1_x = start_x + (base_x - start_x) * devide;
+            float main_1_y = start_y + (base_y - start_y) * devide;
+        
+            float main_2_x = base_x + (finish_x - base_x) * devide;
+            float main_2_y = base_y + (finish_y - base_y) * devide;
+
+            float moving_x = (1 - devide) * (main_1_x) + devide * (main_2_x);
+            float moving_y = (1 - devide) * (main_1_y) + devide * (main_2_y);
+        
+            playerTransForm.position = new Vector2(moving_x, moving_y);
+            yield return null;
+        }
+        playerTransForm.position = new Vector2(finish_x,finish_y);
+        isDebounce = false;
+    }
+    private IEnumerator ExecuteAttack(Vector2 offset, Vector2 size, float duration, float damage, bool isDownSmash, float Force_x, float Force_y, float logic)
     {
         float dir = sprdr.flipX ? -1f : 1f;
 
@@ -339,15 +380,47 @@ public class PlayerTemporary : MonoBehaviour
                         {
                             enemyRb.AddForce(new Vector2(dir * Force_x, Force_y), ForceMode2D.Impulse);
                         }
-                        if(nowchar == 1)
+                        if (logic == 1f)
                         {
-                            //enemyRb.stack_char1 += 1;
+                            stack_char1 += 1;
                         }
                     }
+                        
                 }
             }
             elapsed += Time.deltaTime;
             yield return null;
+        }
+    }
+    
+    private void TeleportLogic(float radius, LayerMask Layer)
+    {
+        Vector3 mouseScreenPos = Input.mousePosition;
+        mouseScreenPos.z = 10f; 
+        Vector3 mouseWorldPos = Camera.main.ScreenToWorldPoint(mouseScreenPos);
+        Vector2 finalMousePos = new Vector2(mouseWorldPos.x, mouseWorldPos.y);
+
+
+        int realEnemyLayerMask = LayerMask.GetMask("Enemy"); 
+
+         Collider2D hitenemy = Physics2D.OverlapCircle(finalMousePos, radius, realEnemyLayerMask);
+    
+        if (hitenemy != null)
+        {
+            if(stack_char1 >= 1)
+            {
+                transform.position = hitenemy.transform.position;
+                Cooldownlist.Remove("SkillWCD_1");
+                stack_char1 -= 1;
+            }
+            else
+            {
+                transform.position = hitenemy.transform.position;
+            }
+        }
+        else
+        {
+            Cooldownlist.Remove("SkillWCD_1");
         }
     }
 
@@ -356,6 +429,8 @@ public class PlayerTemporary : MonoBehaviour
         if (sprdr == null) return;
         Gizmos.color = Color.red;
         float dir = sprdr.flipX ? -1f : 1f;
-        Gizmos.DrawWireCube(transform.position + new Vector3(2f * dir, 0.5f, 0), new Vector3(9f, 6f, 1f));
+        Gizmos.DrawWireCube(transform.position + new Vector3(1f * dir, 0f, 0), new Vector3(2f, 3f, 1f));
     }
+
+    
 }
