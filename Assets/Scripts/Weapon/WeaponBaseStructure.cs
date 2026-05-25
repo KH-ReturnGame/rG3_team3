@@ -20,6 +20,7 @@ public class WeaponData : ScriptableObject
 
     [Header("공격 및 히트박스 정보")]
     public float damage;
+    public float blockDrainMultipler = 1f;
     public Vector2 hitboxSize;
     public Vector2 hitboxOffset;
 

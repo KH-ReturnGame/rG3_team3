@@ -16,12 +16,14 @@ public class PlayerManager : MonoBehaviour
     public float MoveSpeed = 0f;
     public float JumpPower = 0f;
 
+    public string currentWeapon = "testSword";
+
 
     [Header("캐릭터 제어 요소")]
     public bool CanMove = true;
 
     [Header("땅 밟음 체크")]
-    private bool isGrounded;
+    public bool isGrounded;
     public Transform groundCheck;
     public float checkRadius = 0.2f;
     public LayerMask GroundLayer;

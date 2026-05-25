@@ -21,7 +21,7 @@ public class PlayerCombat : MonoBehaviour
     public int currentComboStack = 0;
     private int previousComboStack;
     private float lastComboChangeTime;
-    private float comboStackResetLimit = 2f; // 이후 Update에서 Data에서 정의 ( 평타 쿨타임 간격보다 약간 더 길게 잡으면 됨.)
+    private float comboStackResetLimit = 1f; // 이후 Update에서 Data에서 정의 ( 평타 쿨타임 간격보다 약간 더 길게 잡으면 됨.)
 
     private int maxComboStack = 4;
 
@@ -55,12 +55,26 @@ public class PlayerCombat : MonoBehaviour
         if (plrManager.Stunlist.Count > 0) return;
         if (!plrManager.Cooldownlist.Contains("Attack"))
         {
+
+            WeaponData weapon = WeaponManager.Instance.GetWeaponData(plrManager.currentWeapon);
+            if (weapon == null) return; // 무기리스트에서 반환돼지 않으면 불가.
+
             currentComboStack++;
             lastComboChangeTime = Time.time;
 
-            Debug.Log("Combo : " + currentComboStack);
-            Utility.DataManagement.ListManagement.AddData("Attack", plrManager.Cooldownlist, 1.5f ); // 1.5f는 임시. 
+            comboStackResetLimit = weapon.attackCooldown * 1.4f;
 
+            Debug.Log("Combo : " + currentComboStack);
+            Utility.DataManagement.ListManagement.AddData("Attack", plrManager.Cooldownlist, weapon.attackCooldown); // 1.5f는 임시. 
+
+            if (weapon.hasForwardMove == true && !(plrInput.yInput == 1) )
+            {
+                Debug.Log("no W, Frontdash");
+            }
+            else if(plrInput.yInput == 1 && !(plrManager.isGrounded == true))
+            {
+                Debug.Log("Aerial Cleaves");
+            }
             // 여따 애니메이션 관련 / 쿨타임 데이터 관련 코드 작성 예정
 
 
@@ -72,8 +86,14 @@ public class PlayerCombat : MonoBehaviour
             {
                 currentComboStack = 0;
                 Debug.Log(" 초과로 인해 0으로 초기화진행.");
+                Utility.DataManagement.ListManagement.AddData("Attack", plrManager.Cooldownlist, weapon.attackCooldown * 2.3f);
             }
         }
+
+    }
+
+    public void Skill1()
+    {
 
     }
 
