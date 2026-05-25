@@ -6,7 +6,6 @@ public class PlayerManager : MonoBehaviour
     private PlayerInput plrInput; 
     private PlayerCombat plrCombat;
 
-
     private Rigidbody2D rb2d;
     private SpriteRenderer sprdr;
     private Animator animtr;
@@ -30,6 +29,9 @@ public class PlayerManager : MonoBehaviour
 
     [Header("상태리스트")]
     public List<string> Stunlist = new List<string>();
+    public List<string> FrameList = new List<string>();
+
+    [Header("내부상태리스트")]
     public List<string> Cooldownlist = new List<string>();
 
 
@@ -38,12 +40,12 @@ public class PlayerManager : MonoBehaviour
     {
         plrInput = GetComponent<PlayerInput>();
         plrCombat = GetComponent<PlayerCombat>();
-        // Initialization -- 초기화 작업
+        // Initialization -- 초기화 작업: DefaultData라는 게임 '첫' 시작에 있는 디폴트 플레이어 능력치를 참고하여 시작할때의 능력치를 초기화한다.
         Health = PlayerDefaultData.Health;
         Mana = PlayerDefaultData.Mana;
         MoveSpeed = PlayerDefaultData.MoveSpeed;
         JumpPower = PlayerDefaultData.JumpPower;
-        //
+        //주요 컴포넌트 설정
         rb2d = GetComponent<Rigidbody2D>();
         sprdr = GetComponent<SpriteRenderer>();
         animtr = GetComponent<Animator>();
@@ -61,6 +63,7 @@ public class PlayerManager : MonoBehaviour
     {
           if (CanMove == true)
         {
+            // 좌우 이동에 필요한 힘 조절기
              rb2d.linearVelocity = new Vector2(plrInput.xInput * MoveSpeed, rb2d.linearVelocity.y);
         }
     }
@@ -69,6 +72,7 @@ public class PlayerManager : MonoBehaviour
     {
           if(isGrounded == true)
         {
+            // 점프 기능, 아직은 불안정 해보임
              rb2d.linearVelocity = new Vector2(rb2d.linearVelocity.x, JumpPower);
         }
     }

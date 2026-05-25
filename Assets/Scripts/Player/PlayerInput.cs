@@ -20,14 +20,23 @@ public class PlayerInput : MonoBehaviour
     {
         xInput = Input.GetAxisRaw("Horizontal");
         yInput = Input.GetAxisRaw("Vertical");
+        // 좌우 입력값 / 상하 입력값 (데메크 위로 올리기 기능)
 
         if (plrManager.CanMove == true) // CanMove는 Combat스크립트에서 isStun,isMovementDisabled, 등등을 포괄하여 움직임을 뜻하는 변수.
+            // 이게 근데 의미가 있나?
         {
-
+            // 점프
             if (Input.GetButtonDown("Jump"))
             {
                 plrManager.Jump();
             }
+            // 평타, ||는 OR이란 뜻.
+            if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.L))
+            {
+                Debug.Log("평타");
+            }
+
+
         }
        
 
