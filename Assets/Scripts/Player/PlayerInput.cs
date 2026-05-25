@@ -33,9 +33,20 @@ public class PlayerInput : MonoBehaviour
             // 평타, ||는 OR이란 뜻.
             if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.L))
             {
-                Debug.Log("평타");
+                plrCombat.RequestAttack();
             }
 
+            /*
+            if (Input.GetKeyDown(KeyCode.Alpha1)) plrCombat.Skill1(); // 스킬 슬롯마다 체크
+            if (Input.GetKeyDown(KeyCode.Alpha2)) plrCombat.Skill2();
+            if (Input.GetKeyDown(KeyCode.Alpha3)) plrCombat.Skill3();
+            if (Input.GetKeyDown(KeyCode.Alpha4)) plrCombat.Skill4();
+
+            if (Input.GetKeyDown(KeyCode.C)) plrCombat.Dash();
+            if (Input.GetKeyDown(KeyCode.F)) plrCombat.Block();
+
+            if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.R)) plrCombat.Parry();
+            */
 
         }
        
