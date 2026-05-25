@@ -7,6 +7,8 @@ public class Dynamics : MonoBehaviour
     public Vector2 impulseVec;
     public float intensity;
 
+    float timer;
+
     void Awake()
     {
         rb2d = GetComponent<Rigidbody2D>();
@@ -21,12 +23,13 @@ public class Dynamics : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+        timer += Time.deltaTime;
     }
 
     public void ParabolaMovement()
     {
         rb2d.linearVelocity = impulseVec.normalized * intensity;
+
         //transform.position.x
     }
 }

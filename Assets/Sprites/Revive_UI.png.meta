@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 3f62b9a283553c54888d8ba6e76e2acd
+guid: 1746f847818e8a942a7072a8f5cea5ad
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -3896691663747499890
-    second: Spawn_UI_0
+      213: -1158076175517899821
+    second: Revive_UI_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,12 +100,12 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Spawn_UI_0
+      name: Revive_UI_0
       rect:
         serializedVersion: 2
-        x: 61
-        y: 59
-        width: 138
+        x: 15
+        y: 21
+        width: 150
         height: 138
       alignment: 0
       pivot: {x: 0, y: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: e88ba1fc39b2ce9c0800000000000000
-      internalID: -3896691663747499890
+      spriteID: 3d3a967aadfadefe0800000000000000
+      internalID: -1158076175517899821
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      Spawn_UI_0: -3896691663747499890
+      Revive_UI_0: -1158076175517899821
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

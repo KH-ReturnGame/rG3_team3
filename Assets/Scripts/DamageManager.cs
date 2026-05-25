@@ -8,6 +8,8 @@ public class DamageManager : MonoBehaviour
     
     float health;
     float damage;
+    float totalDamage;
+    float recover;
 
     Coroutine burningCoroutine;
 
@@ -35,11 +37,28 @@ public class DamageManager : MonoBehaviour
     {
         damage = d;
         health -= damage;
-        Debug.Log("damage: " + damage);
+        totalDamage += damage;
+        Debug.Log("damage: " + damage + ", total damage: " + totalDamage + ", current health is " + health);
+    }
+
+    public void Recover(float r)
+    {
+        if (health < 100)
+        {
+            recover = r;
+            health += recover;
+            Debug.Log(recover + " health recoverd. current health is " + health);
+        }
+        else
+        {
+            Debug.Log("the health is max");
+        }
     }
 
     IEnumerator BurningDamage(float d, int i)
     {
+        totalDamage = 0;
+        
         for (int j = 0; j < i; j++)
         {
             GetDamage(10);
@@ -53,11 +72,19 @@ public class DamageManager : MonoBehaviour
     public void TakeWater()
     {
         StopCoroutine(burningCoroutine);
-        health += 5;
+        spRend.color = Color.white;
+        Recover(5);
     }
 
     public void Burning()
     {
         burningCoroutine = StartCoroutine(BurningDamage(5, 5));
+    }
+
+    public void Revive()
+    {
+        health = 100;
+        circle.SetActive(true);
+        spRend.color = Color.white;
     }
 }

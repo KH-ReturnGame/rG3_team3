@@ -9,12 +9,10 @@ public class Manager : MonoBehaviour
 
     public static Manager Instance;
 
-    public GameObject scenemanager;
-
     void Awake()
     {
         Instance = this;
-        DontDestroyOnLoad(scenemanager);
+        DontDestroyOnLoad(gameObject);
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
