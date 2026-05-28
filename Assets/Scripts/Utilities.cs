@@ -45,4 +45,10 @@ namespace Utility.DataManagement
             dataList.Remove(dataName);
         }
     }
+
+    public static class CombatManagement
+    {
+        
+
+    }
 }
