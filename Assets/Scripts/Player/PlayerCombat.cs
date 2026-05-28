@@ -62,7 +62,7 @@ public class PlayerCombat : MonoBehaviour
             currentComboStack++;
             lastComboChangeTime = Time.time;
 
-            comboStackResetLimit = weapon.attackCooldown * 2f;
+            comboStackResetLimit = weapon.attackCooldown * 1.4f;
 
             Debug.Log("Combo : " + currentComboStack);
             Utility.DataManagement.ListManagement.AddData("Attack", plrManager.Cooldownlist, weapon.attackCooldown); // 1.5f는 임시. 
@@ -86,12 +86,7 @@ public class PlayerCombat : MonoBehaviour
             {
                 currentComboStack = 0;
                 Debug.Log(" 초과로 인해 0으로 초기화진행.");
-
-                // 막타 쿨타임 증가 (기존 코드)
                 Utility.DataManagement.ListManagement.AddData("Attack", plrManager.Cooldownlist, weapon.attackCooldown * 2.3f);
-
-                // [수정] 막타를 쳤을 때는 다음 공격 쿨타임(2.3배) 동안 콤보 스택이 먼저 터지지 않도록 리셋 제한 시간도 늘려줍니다.
-                comboStackResetLimit = (weapon.attackCooldown * 2.3f) + 0.5f;
             }
         }
 
