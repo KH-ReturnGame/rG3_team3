@@ -153,7 +153,7 @@ public class PlayerTemporary : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.Q) && !isDebounce)  //Q스킬 
         {
-            if(nowchar == 1)   //완성
+            if(nowchar == 1)   //찌르기 
             {
                 if(stack_Q_char1 != 0)
                 {
@@ -166,17 +166,40 @@ public class PlayerTemporary : MonoBehaviour
                     isDebounce = false;
                 }
             }
-            else if (nowchar == 2) //완성
+            else if (nowchar == 2) //돌진펀치
             {
                 if (!Cooldownlist.Contains("SkillQCD_2"))
                 {
                     isDebounce = true;
                     look = sprdr.flipX ? -1f : 1f;
-                    Debug.Log("Skill Q Activated");
-                    AddDataToList("SkillQCD_2", Cooldownlist, 3f, 0);
+                    Debug.Log("Skill Q_2 Activated");
+                    AddDataToList("SkillQCD_2", Cooldownlist, 5f, 0);
                     AddDataToList("Dash", Cooldownlist, 0.2f, 0);
-                    rb2d.AddForce(new Vector2(look*20f,0f), ForceMode2D.Impulse);
-                    StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 15f, 0f, 0));
+                    rb2d.AddForce(new Vector2(look*10f,0f), ForceMode2D.Impulse);
+                    StartCoroutine(ExecuteAttack(new Vector2(5f, 0f), new Vector2(10f, 2f), 0.1f, 30f, false, 15f, 0f, 0));
+                    isDebounce = false;
+                }
+            }
+            else if(nowchar ==3) //(1타)찌르기 (2타)찌르며 대쉬
+            {
+                if(!Cooldownlist.Contains("SkillQCD_3"))
+                {
+                    isDebounce = true;
+                    Debug.Log("Skill Q_3_1 Activated");
+                    AddDataToList("SkillQCD_3",Cooldownlist,8f,0);
+                    AddDataToList("SkillQCD_3_2",Cooldownlist,3f,0);
+                    AddDataToList("SkillQ_2",Cooldownlist, 15f,0);
+                    StartCoroutine(ExecuteAttack(new Vector2(1.5f,0f), new Vector2(3f, 1f), 0.1f, 30f, false, 0f, 0f, 0));
+                    isDebounce = false;
+                }
+                else if(Cooldownlist.Contains("SkillQ_2")&&!Cooldownlist.Contains("SkillQCD_3_2"))
+                {
+                    isDebounce = true;
+                    look = sprdr.flipX ? -1f : 1f;
+                    Debug.Log("Skill Q_3_2 Activated");
+                    AddDataToList("Dash", Cooldownlist, 0.15f, 0);
+                    rb2d.AddForce(new Vector2(look*7f,0f), ForceMode2D.Impulse);
+                    StartCoroutine(ExecuteAttack(new Vector2(3.4f,0f), new Vector2(6.8f, 1f), 0.1f, 30f, false, 0f, 0f, 0));
                     isDebounce = false;
                 }
             }
@@ -184,7 +207,7 @@ public class PlayerTemporary : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.W) && !isDebounce)   //W스킬
         {
-            if(nowchar == 1)
+            if(nowchar == 1) //텔포
             {
                 if (!Cooldownlist.Contains("SkillWCD_1"))
                 {
@@ -195,7 +218,7 @@ public class PlayerTemporary : MonoBehaviour
                 isDebounce = false;
                 }
             }
-            else if(nowchar == 2)  //완성
+            else if(nowchar == 2)  //날라가 착지
             {
                 if (!Cooldownlist.Contains("SkillWCD_2"))
                 {
@@ -205,10 +228,15 @@ public class PlayerTemporary : MonoBehaviour
                     Char_2_W(0.3f);
                 }
             }
-            else if (nowchar == 3)
+            else if (nowchar == 3)  //(1타) 아래로 내려 찍기. (2타) 위로 올리기 (3타)찌르기
             {
                 if (!Cooldownlist.Contains("SkillWCD_3"))
                 {
+                    isDebounce = true;
+                    Debug.Log("Skill W_3 Activated");
+                    AddDataToList("SkillWCD_3", Cooldownlist, 6f, 0);
+                    StartCoroutine(Char_3_W());
+                    isDebounce = false;
                 }
             }
         }
@@ -219,7 +247,7 @@ public class PlayerTemporary : MonoBehaviour
             {
                 
             }
-            else if(nowchar == 2)
+            else if(nowchar == 2)  //위로 펀치 올리기
             {
                 if (!Cooldownlist.Contains("SkillECD_2"))
                 {
@@ -272,14 +300,6 @@ public class PlayerTemporary : MonoBehaviour
         }
     }
 
-    private IEnumerator Defend_2(float Defend, float duration)
-    {
-        {
-            defend = Defend;
-            yield return new WaitForSeconds(duration);
-            defend = 0;
-        }
-    }
     private IEnumerator Bezier_Curves(float base_x, float base_y, float finish_x, float finish_y, float duration)
     {
         float t = 0f;
@@ -317,6 +337,7 @@ public class PlayerTemporary : MonoBehaviour
             yield return null;
         }
         playerTransForm.position = new Vector2(finish_x,finish_y);
+        StartCoroutine(ExecuteAttack(new Vector2(0f,-1f), new Vector2(5f, 1f), 0.1f, 30f, false, 0f, 7f, 0));
         isDebounce = false;
     }
     private IEnumerator ExecuteAttack(Vector2 offset, Vector2 size, float duration, float damage, bool isDownSmash, float Force_x, float Force_y, float logic)
@@ -381,6 +402,18 @@ public class PlayerTemporary : MonoBehaviour
         }
     }
 
+    public IEnumerator Char_3_W()
+    {
+    StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(2.3f, 3f), 0.1f, 30f, false, 0f, 0f, 0));
+    Debug.Log("1");
+    yield return new WaitForSeconds(0.5f);
+    Debug.Log("2");
+    StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(2.3f, 3f), 0.1f, 30f, false, 0f, 0f, 0));
+    yield return new WaitForSeconds(0.6f);
+    Debug.Log("3");
+    StartCoroutine(ExecuteAttack(new Vector2(1.5f,0f), new Vector2(3f, 1f), 0.1f, 50f, false, 0f, 0f, 0));
+    }
+
     private void Char_2_W(float radius)
 
     {
@@ -401,7 +434,7 @@ public class PlayerTemporary : MonoBehaviour
         if(hitenemy != null)
         {
 
-            StartCoroutine(Bezier_Curves(x-1f*look,y+10f,x,y,0.7f));
+            StartCoroutine(Bezier_Curves(x-1f*look,y+7f,x,y,0.6f));
 
         }
         else
@@ -409,7 +442,6 @@ public class PlayerTemporary : MonoBehaviour
             isDebounce = false;
             Cooldownlist.Remove("SkillWCD_2");
         }
-
     } 
     
     private void TeleportLogic(float radius, LayerMask Layer)
@@ -448,7 +480,7 @@ public class PlayerTemporary : MonoBehaviour
         if (sprdr == null) return;
         Gizmos.color = Color.red;
         float dir = sprdr.flipX ? -1f : 1f;
-        Gizmos.DrawWireCube(transform.position + new Vector3(1f * dir, 0f, 0), new Vector3(2f, 3f, 1f));
+        Gizmos.DrawWireCube(transform.position + new Vector3(0f * dir, 0f, 0), new Vector3(5f, 1f, 1f));
     }
 
     
