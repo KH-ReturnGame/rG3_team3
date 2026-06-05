@@ -431,7 +431,7 @@ public class PlayerTemporary : MonoBehaviour
         Debug.Log($"[홀딩 시작] {inputKey} 스킬");
 
         float holdingTimer = 0f;
-        float maxHoldingTime = 5.0f; // 홀딩 최대 제한 시간
+        float maxHoldingTime = 8.0f; // 홀딩 최대 제한 시간
         float damagePerTick = 10f;   // 틱당 데미지
 
         // 키를 누르고 있고, 스턴이 아니며, 최대 제한 시간을 넘지 않을 때만 반복
