@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-
 public class PlayerCombat : MonoBehaviour
 {
     private PlayerManager plrManager;
@@ -13,25 +12,17 @@ public class PlayerCombat : MonoBehaviour
     private Animator animtr;
 
     // 활성 변수
-
     public bool isDebounce = false;
 
     // Attack - 평타 변수 
-
     public int currentComboStack = 0;
-    private int previousComboStack;
     private float lastComboChangeTime;
-    private float comboStackResetLimit = 1f; // 이후 Update에서 Data에서 정의 ( 평타 쿨타임 간격보다 약간 더 길게 잡으면 됨.)
+    private float comboStackResetLimit = 1f;
+    private int maxComboStack = 4;
 
-    private int maxComboStack = 4; // 이게 문제네 이걸 ㅅㅂ 어케하지 그니깐 Weapon 데이터를 적용 시키는게 지금으로써는 
-    /// <summary>
-    /// 아래에 그 뭐냐 평타할떄 '사후적으로' 데이터를 인식시켜서 바꾸는건데, 아니면 차라리
-    /// 
-    /// 씬이 이니셜 라이즈 될때 데이터 세팅해주는 매니저에서 
-    /// 
-    /// 플레이어가 착용한 무기를 감지해서 Max Combo Stack 이런거를 바꾸게 할까? 
-    /// </summary>
-
+    [Header("전투 물리 설정")]
+    public float forwardThrustForce = 55f;
+    public LayerMask enemyLayer; 
 
     void Awake()
     {
@@ -45,121 +36,106 @@ public class PlayerCombat : MonoBehaviour
 
     void Update()
     {
-         if (currentComboStack > 0 && Time.time - lastComboChangeTime >= comboStackResetLimit)
-         {
-             currentComboStack = 0;
-             Debug.Log("시간 초과 (스택 변화 없음): 콤보 스택이 0으로 초기화되었습니다.");
-         }
+        if (currentComboStack > 0 && Time.time - lastComboChangeTime >= comboStackResetLimit)
+        {
+            currentComboStack = 0;
+            Debug.Log("시간 초과 (스택 변화 없음): 콤보 스택이 0으로 초기화되었습니다.");
+        }
     }
 
-    void FixedUpdate()
-    {
-
-    }
 
     public void RequestAttack()
     {
         if (plrManager.Stunlist.Count > 0) return;
         if (!plrManager.Cooldownlist.Contains("Attack"))
         {
-
+            // 기존 로직: 무기 데이터 확인
             WeaponData weapon = WeaponManager.Instance.GetWeaponData(plrManager.currentWeapon);
-            if (weapon == null) return; // 무기리스트에서 반환돼지 않으면 불가.
+            if (weapon == null) return;
 
+            // 기존 로직: 콤보 스택 업데이트
             currentComboStack++;
             lastComboChangeTime = Time.time;
-
             comboStackResetLimit = weapon.attackCooldown * 1.4f;
-
             Debug.Log("Combo : " + currentComboStack);
-            Utility.DataManagement.ListManagement.AddData("Attack", plrManager.Cooldownlist, weapon.attackCooldown); // 1.5f는 임시. 
 
-            if (weapon.hasForwardMove == true && !(plrInput.yInput == 1) )
+            Utility.DataManagement.ListManagement.AddData("Attack", plrManager.Cooldownlist, weapon.attackCooldown);
+
+            // ---- [추가된 로직: 상황별 평타 액션 및 히트박스] ----
+            // 1. 공중 체공 (Aerial Rave): 공중 + W 누름
+            if (!plrManager.isGrounded && plrInput.yInput > 0)
             {
-                Debug.Log("no W, Frontdash");
+                Debug.Log("Aerial Cleaves: 체공");
+                // 중력을 무시하도록 Y축 속도 0으로 고정
+                rb2d.linearVelocity = new Vector2(rb2d.linearVelocity.x, 0f);
+                ExecuteHitbox(1.5f, 10f, 0f); // (데미지/넉백은 무기 데이터로 교체 가능)
             }
-            else if(plrInput.yInput == 1 && !(plrManager.isGrounded == true))
+            // 2. 지상 전진 (기존 weapon.hasForwardMove 활용)
+            else if (plrManager.isGrounded)
             {
-                Debug.Log("Aerial Cleaves");
+                if (weapon.hasForwardMove && plrInput.yInput != 1)
+                {
+                    Debug.Log("Frontdash: 지상 전진 평타");
+                    float facingDirection = sprdr.flipX ? -1f : 1f;
+                    rb2d.AddForce(new Vector2(facingDirection * forwardThrustForce, 0f));
+                }
+                ExecuteHitbox(1.5f, 10f, 0f);
             }
-            // 여따 애니메이션 관련 / 쿨타임 데이터 관련 코드 작성 예정
+            // ----------------------------------------------------
 
-
-            // 애니메이션 타임 맞춰서 히트 박스 관리
-
-
-
+            // 기존 로직: 최대 콤보 도달 시 초기화 및 딜레이
             if (currentComboStack >= maxComboStack)
             {
                 currentComboStack = 0;
-                Debug.Log(" 초과로 인해 0으로 초기화진행.");
+                Debug.Log("초과로 인해 0으로 초기화 진행.");
                 Utility.DataManagement.ListManagement.AddData("Attack", plrManager.Cooldownlist, weapon.attackCooldown * 2.3f);
             }
         }
-
     }
 
-    public void Skill1()
+   
+    public void RequestStrongAttack()
     {
+        if (plrManager.Stunlist.Count > 0) return;
+        if (!plrManager.Cooldownlist.Contains("StrongAttack"))
+        {
+            // 강공격 쿨타임 (임시값 0.8f, 필요시 WeaponData 연동)
+            Utility.DataManagement.ListManagement.AddData("StrongAttack", plrManager.Cooldownlist, 0.8f);
 
+            // 1. 하이 타임 (띄우기): 지상 + W 누름
+            if (plrManager.isGrounded && plrInput.yInput > 0)
+            {
+                Debug.Log("High Time: 공중으로 띄우기");
+                rb2d.linearVelocity = new Vector2(rb2d.linearVelocity.x, plrManager.JumpPower);
+                ExecuteHitbox(2f, 20f, 15f); // Y 넉백(15f)으로 적을 띄움
+            }
+            // 2. 헬름 브레이커 (내려찍기): 공중 + S 누름
+            else if (!plrManager.isGrounded && plrInput.yInput < 0)
+            {
+                Debug.Log("Helm Breaker: 급강하 내려찍기");
+                rb2d.linearVelocity = new Vector2(0f, -25f); // 플레이어 급강하
+                ExecuteHitbox(2f, 30f, -20f); // 강한 음수 Y 넉백으로 적을 바닥에 꽂음
+            }
+        }
+    }
+
+
+    private void ExecuteHitbox(float radius, float damage, float yKnockback)
+    {
+        float facingDirection = sprdr.flipX ? -1f : 1f;
+        Vector2 hitboxPos = new Vector2(transform.position.x + (facingDirection * 1f), transform.position.y);
+
+        Collider2D[] hitEnemies = Utility.DataManagement.CombatManagement.CreateHitbox(hitboxPos, radius, enemyLayer);
+
+        foreach (Collider2D enemy in hitEnemies)
+        {
+            // TODO: 상대방 스크립트로 damage와 yKnockback(띄우기/내려찍기용) 전달
+            Debug.Log(enemy.name + " 적중!");
+        }
     }
 
     void LateUpdate()
     {
 
     }
-
-    /* 
-
-   plrInput (평타 호출) -> 
-
-   + plrCombat 작동순서 
-
-
-    BasicAttack void 만들기
-    - StunCheck 
-    - CoolTimeCheck
-    - DataCheck
-    -> isSpecialAttack 체크
-
-   < 만약 FALSE > 일때
-
-   콤보 스택 1+ 
-   콤보 n이상 이면 1로 초기화 
-   Data에서 매 콤보스택마다의 타이밍 불러와서쓰기 
-
-   Data에서 앞으로 전진하는 값이 주어졌는지 확인 
-
-   애니메이션 이벤트 
-    -> 히트박스 호출 및 매개변수로 데이터에서 추출한 값 대입
-    -> 이펙트 모듈 호출
-
-   -> 특수 데미지 Check 
-    참이면 상대방 데미지 호출때 SpecialDamage키고 능력치 매개변수로 ㄱㄱ
-    
-
-    참고로 데미지 받는거에서 도트 데미지와 함께 딸려오는 이펛트는 데미지 모듈 안에서 처리.
-
-
-
-    시간 초과하면 콤보 스택 초기화 
-
-
-
-    + 공중인 상태로 W누른 상태로 클릭 누르면 붕뜬 상태로 평타 
-
-   
-
-
-
-
-  
-
-
-
-
-
-
-
-     */
 }

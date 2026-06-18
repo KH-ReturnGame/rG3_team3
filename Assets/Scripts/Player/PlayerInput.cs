@@ -37,7 +37,7 @@ public class PlayerInput : MonoBehaviour
             }
             if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.R))
             {
-               // plrCombat.RequestStrongAttack(); // yInput에 따라 달라짐 -> HighTime / Downslam
+                plrCombat.RequestStrongAttack(); // yInput에 따라 달라짐 -> HighTime / Downslam
             }
 
             /*

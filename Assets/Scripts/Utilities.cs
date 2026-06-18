@@ -48,7 +48,10 @@ namespace Utility.DataManagement
 
     public static class CombatManagement
     {
-        
+        public static Collider2D[] CreateHitbox(Vector2 center, float radius, LayerMask targetLayer)
+        {
+            return Physics2D.OverlapCircleAll(center, radius, targetLayer);
+        }
 
     }
 }

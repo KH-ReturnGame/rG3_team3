@@ -12,12 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e47f41ab106fc36408b7d8218528c991, type: 3}
   m_Name: "\uC2E4\uD5D8\uC6A9"
   m_EditorClassIdentifier: Assembly-CSharp::WeaponData
-  weaponName: TestSword
+  weaponName: testSword
   weaponType: 1
   attackCooldown: 0.45
   hasForwardMove: 1
   forwardForce: 10
   damage: 8
+  blockDrainMultipler: 1
   hitboxSize: {x: 0, y: 0}
   hitboxOffset: {x: 0, y: 0}
   criticalMultiplier: 1
