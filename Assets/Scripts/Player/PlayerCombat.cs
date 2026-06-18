@@ -23,7 +23,14 @@ public class PlayerCombat : MonoBehaviour
     private float lastComboChangeTime;
     private float comboStackResetLimit = 1f; // 이후 Update에서 Data에서 정의 ( 평타 쿨타임 간격보다 약간 더 길게 잡으면 됨.)
 
-    private int maxComboStack = 4;
+    private int maxComboStack = 4; // 이게 문제네 이걸 ㅅㅂ 어케하지 그니깐 Weapon 데이터를 적용 시키는게 지금으로써는 
+    /// <summary>
+    /// 아래에 그 뭐냐 평타할떄 '사후적으로' 데이터를 인식시켜서 바꾸는건데, 아니면 차라리
+    /// 
+    /// 씬이 이니셜 라이즈 될때 데이터 세팅해주는 매니저에서 
+    /// 
+    /// 플레이어가 착용한 무기를 감지해서 Max Combo Stack 이런거를 바꾸게 할까? 
+    /// </summary>
 
 
     void Awake()

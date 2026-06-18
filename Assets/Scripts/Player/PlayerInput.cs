@@ -33,7 +33,11 @@ public class PlayerInput : MonoBehaviour
             // 평타, ||는 OR이란 뜻.
             if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.L))
             {
-                plrCombat.RequestAttack();
+                plrCombat.RequestAttack();// yInput에 따라 달라짐 -> Aerial Cleaves
+            }
+            if (Input.GetMouseButtonDown(1) || Input.GetKeyDown(KeyCode.R))
+            {
+               // plrCombat.RequestStrongAttack(); // yInput에 따라 달라짐 -> HighTime / Downslam
             }
 
             /*

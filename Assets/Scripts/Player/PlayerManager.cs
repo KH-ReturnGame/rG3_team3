@@ -16,7 +16,7 @@ public class PlayerManager : MonoBehaviour
     public float MoveSpeed = 0f;
     public float JumpPower = 0f;
 
-    public string currentWeapon = "testSword";
+    public string currentWeapon = "testSword"; //임시
 
 
     [Header("캐릭터 제어 요소")]
@@ -60,7 +60,12 @@ public class PlayerManager : MonoBehaviour
         // 땅 체크
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, checkRadius, GroundLayer);
         // 
+        FlipSprite();
     }
+
+    /// <summary>
+    /// 좌우이동에 스프라이트 방향 수정도 체크. 근데 공격 도중에 바꾸는거 여부는 나중에 검토.
+    /// </summary>
 
     void FixedUpdate()
     {
@@ -78,5 +83,14 @@ public class PlayerManager : MonoBehaviour
             // 점프 기능, 아직은 불안정 해보임
              rb2d.linearVelocity = new Vector2(rb2d.linearVelocity.x, JumpPower);
         }
+    }
+
+    public void FlipSprite() // 나중에 모션 발동중에 뒤집히는거 감안해서 뭐해야하는듯
+    {
+        if (plrInput.xInput > 0)
+            sprdr.flipX = false;
+        else if (plrInput.xInput < 0)
+            sprdr.flipX = true;
+
     }
 }

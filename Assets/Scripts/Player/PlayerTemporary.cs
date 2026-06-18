@@ -29,10 +29,6 @@ public class PlayerTemporary : MonoBehaviour
 
     public bool isDebounce = false;
 
-
-
-
-
     private bool isGrounded;
     public Transform groundCheck;
     public float checkRadius = 0.2f;

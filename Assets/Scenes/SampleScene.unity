@@ -119,6 +119,50 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &244868041
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 244868043}
+  - component: {fileID: 244868042}
+  m_Layer: 0
+  m_Name: System
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &244868042
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 244868041}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d24c196ff57724f4fb79711d2225ec30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponManager
+--- !u!4 &244868043
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 244868041}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -13.48057, y: -1.61139, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &475345980
 GameObject:
   m_ObjectHideFlags: 0
@@ -1137,7 +1181,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1129845421}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4a9dc87f0cdc16a45ad9a9a1baa31b70, type: 3}
   m_Name: 
@@ -1226,14 +1270,18 @@ MonoBehaviour:
   Mana: 0
   MoveSpeed: 0
   JumpPower: 0
+  currentWeapon: testSword
   CanMove: 1
+  isGrounded: 0
   groundCheck: {fileID: 1129845425}
   checkRadius: 3
   GroundLayer:
     serializedVersion: 2
     m_Bits: 64
   Stunlist: []
+  FrameList: []
   Cooldownlist: []
+  Frameslist: []
 --- !u!114 &1129845430
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1260,6 +1308,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b46c063b62e0cf54e9593535d46c3a13, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerCombat
+  isDebounce: 0
+  currentComboStack: 0
 --- !u!1 &1164120031
 GameObject:
   m_ObjectHideFlags: 0
@@ -1618,7 +1668,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1477035065}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3da469a79f7bed44381a01e657582e39, type: 3}
   m_Name: 
@@ -1728,3 +1778,4 @@ SceneRoots:
   - {fileID: 919111038}
   - {fileID: 980920807}
   - {fileID: 475345982}
+  - {fileID: 244868043}
