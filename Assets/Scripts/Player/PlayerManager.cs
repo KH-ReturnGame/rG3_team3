@@ -92,5 +92,12 @@ public class PlayerManager : MonoBehaviour
         else if (plrInput.xInput < 0)
             sprdr.flipX = true;
 
+
+        if (plrInput.xInput != 0)
+            animtr.SetBool("isWalking", true);
+        else
+            animtr.SetBool("isWalking", false);
+
+
     }
 }

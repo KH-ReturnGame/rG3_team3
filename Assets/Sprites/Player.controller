@@ -11,17 +11,17 @@ AnimatorStateMachine:
   m_ChildStates:
   - serializedVersion: 1
     m_State: {fileID: 13685804510509580}
-    m_Position: {x: 230, y: -80, z: 0}
+    m_Position: {x: 410, y: -90, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 5500443151919822671}
-    m_Position: {x: 230, y: 20, z: 0}
+    m_Position: {x: 550, y: 20, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
   m_StateMachineTransitions: {}
   m_StateMachineBehaviours: []
-  m_AnyStatePosition: {x: 250, y: -150, z: 0}
-  m_EntryPosition: {x: 250, y: 120, z: 0}
+  m_AnyStatePosition: {x: 580, y: -210, z: 0}
+  m_EntryPosition: {x: 580, y: 110, z: 0}
   m_ExitPosition: {x: 800, y: 120, z: 0}
   m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
   m_DefaultState: {fileID: 5500443151919822671}
@@ -61,8 +61,8 @@ AnimatorState:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Walkie
-  m_Speed: 2
+  m_Name: Run 0
+  m_Speed: 1.4
   m_CycleOffset: 0
   m_Transitions:
   - {fileID: 8124324295065031898}
@@ -75,7 +75,7 @@ AnimatorState:
   m_MirrorParameterActive: 0
   m_CycleOffsetParameterActive: 0
   m_TimeParameterActive: 0
-  m_Motion: {fileID: 7400000, guid: 5cd0d85260858a848974a87ec978bbaf, type: 2}
+  m_Motion: {fileID: 7400000, guid: 96b9c6a0120ba7f4ea54cee434cbd0f1, type: 2}
   m_Tag: 
   m_SpeedParameter: 
   m_MirrorParameter: 

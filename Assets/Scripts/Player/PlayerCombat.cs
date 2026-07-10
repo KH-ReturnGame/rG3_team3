@@ -49,11 +49,11 @@ public class PlayerCombat : MonoBehaviour
         if (plrManager.Stunlist.Count > 0) return;
         if (!plrManager.Cooldownlist.Contains("Attack"))
         {
-            // 기존 로직: 무기 데이터 확인
+            
             WeaponData weapon = WeaponManager.Instance.GetWeaponData(plrManager.currentWeapon);
             if (weapon == null) return;
 
-            // 기존 로직: 콤보 스택 업데이트
+            
             currentComboStack++;
             lastComboChangeTime = Time.time;
             comboStackResetLimit = weapon.attackCooldown * 1.4f;
@@ -61,16 +61,15 @@ public class PlayerCombat : MonoBehaviour
 
             Utility.DataManagement.ListManagement.AddData("Attack", plrManager.Cooldownlist, weapon.attackCooldown);
 
-            // ---- [추가된 로직: 상황별 평타 액션 및 히트박스] ----
-            // 1. 공중 체공 (Aerial Rave): 공중 + W 누름
+            
             if (!plrManager.isGrounded && plrInput.yInput > 0)
             {
                 Debug.Log("Aerial Cleaves: 체공");
-                // 중력을 무시하도록 Y축 속도 0으로 고정
+                
                 rb2d.linearVelocity = new Vector2(rb2d.linearVelocity.x, 0f);
-                ExecuteHitbox(1.5f, 10f, 0f); // (데미지/넉백은 무기 데이터로 교체 가능)
+                ExecuteHitbox(1.5f, 10f, 0f); 
             }
-            // 2. 지상 전진 (기존 weapon.hasForwardMove 활용)
+            
             else if (plrManager.isGrounded)
             {
                 if (weapon.hasForwardMove && plrInput.yInput != 1)
@@ -81,9 +80,7 @@ public class PlayerCombat : MonoBehaviour
                 }
                 ExecuteHitbox(1.5f, 10f, 0f);
             }
-            // ----------------------------------------------------
-
-            // 기존 로직: 최대 콤보 도달 시 초기화 및 딜레이
+          
             if (currentComboStack >= maxComboStack)
             {
                 currentComboStack = 0;
@@ -99,22 +96,21 @@ public class PlayerCombat : MonoBehaviour
         if (plrManager.Stunlist.Count > 0) return;
         if (!plrManager.Cooldownlist.Contains("StrongAttack"))
         {
-            // 강공격 쿨타임 (임시값 0.8f, 필요시 WeaponData 연동)
+           
             Utility.DataManagement.ListManagement.AddData("StrongAttack", plrManager.Cooldownlist, 0.8f);
 
-            // 1. 하이 타임 (띄우기): 지상 + W 누름
+            
             if (plrManager.isGrounded && plrInput.yInput > 0)
             {
                 Debug.Log("High Time: 공중으로 띄우기");
                 rb2d.linearVelocity = new Vector2(rb2d.linearVelocity.x, plrManager.JumpPower);
                 ExecuteHitbox(2f, 20f, 15f); // Y 넉백(15f)으로 적을 띄움
             }
-            // 2. 헬름 브레이커 (내려찍기): 공중 + S 누름
             else if (!plrManager.isGrounded && plrInput.yInput < 0)
             {
                 Debug.Log("Helm Breaker: 급강하 내려찍기");
                 rb2d.linearVelocity = new Vector2(0f, -25f); // 플레이어 급강하
-                ExecuteHitbox(2f, 30f, -20f); // 강한 음수 Y 넉백으로 적을 바닥에 꽂음
+                ExecuteHitbox(2f, 30f, -20f); 
             }
         }
     }
