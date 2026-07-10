@@ -1,12 +1,22 @@
+using NUnit.Framework.Constraints;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[System.Serializable]
+public class AttackPrefab
+{
+    public GameObject attack_down;
+    public GameObject attack_up;
+    public GameObject real_attack_down;
+    public GameObject real_attack_up;
+}
 public class PlayerTemporary : MonoBehaviour
 {
     private Rigidbody2D rb2d;
     private SpriteRenderer sprdr;
     private Animator animtr;
+    private GameObject attack;
 
     private Transform playerTransForm;
 
@@ -14,6 +24,7 @@ public class PlayerTemporary : MonoBehaviour
     private float jumpForce = 25f;
     public LayerMask Enemy;
 
+    public AttackPrefab prefab = new AttackPrefab();
 
 
     private float moveInput;
@@ -45,8 +56,12 @@ public class PlayerTemporary : MonoBehaviour
     private Dictionary<Collider2D, float> enemyStackRegister = new Dictionary<Collider2D, float>();
     public float stack_char1 = 0; //적이 받는 스택
     public int stack_Q_char1 = 3;
+    public bool R_Activated = false;
     //2번째 캐릭터 스킬 변수
     public float punchup = 1;
+    //3번째 캐릭터 스킬 변수
+    public float stack_char3 = 0;
+
     public int punchupstack = 0;
     public float defend = 0;
     public LayerMask whatIsGround;
@@ -134,24 +149,41 @@ public class PlayerTemporary : MonoBehaviour
             }
         }
 
+        if (Input.GetKeyDown(KeyCode.K))
+        {
+            GameObject player = GameObject.Find("Player");
+
+            Vector2 player_position = player.transform.position;
+            playerTransForm = player.transform;
+
+            float start_x_1 = player_position.x;
+            float start_y_1 = player_position.y;
+
+            StartCoroutine(EnemyAttack_1("attack_down",new Vector2 (start_x_1, start_y_1),new Vector2 (100, 1),2, 10));
+        }
+
         if (Input.GetKeyDown(KeyCode.Alpha1) && !Stunlist.Contains("Stun"))    //캐릭터 교체
         {
-            nowchar = 1;
             Debug.Log("1변경");
+            stack_char3 = 0;
+            nowchar = 1;
         }
         else if (Input.GetKeyDown(KeyCode.Alpha2) && !Stunlist.Contains("Stun"))
         {
             Debug.Log("2변경");
+            stack_char3 = 0;
             nowchar = 2;
         }
         else if (Input.GetKeyDown(KeyCode.Alpha3) && !Stunlist.Contains("Stun"))
         {
             Debug.Log("3변경");
+            stack_char3 = 0;
             nowchar = 3;
         }
         else if (Input.GetKeyDown(KeyCode.Alpha4) && !Stunlist.Contains("Stun"))
         {
             Debug.Log("4변경");
+            stack_char3 = 0;
             nowchar = 4;
         }
 
@@ -210,7 +242,7 @@ public class PlayerTemporary : MonoBehaviour
                 }
             }
         }
-    
+
         if (Input.GetKeyDown(KeyCode.W) && !isDebounce)   //W스킬
         {
 
@@ -252,7 +284,7 @@ public class PlayerTemporary : MonoBehaviour
         {
             if (nowchar == 1)
             {
-
+                //본 pc에 만들었음 
             }
             else if (nowchar == 2)  //위로 펀치 올리기
             {
@@ -280,7 +312,26 @@ public class PlayerTemporary : MonoBehaviour
 
         if (Input.GetKeyDown(KeyCode.R) && !isDebounce)  //R스킬
         {
-
+            if (nowchar == 1) //스택 추가
+            {
+                isDebounce = true;
+                Debug.Log("Skill R_1 Activated");
+                AddDataToList("SkillRCD_1", Cooldownlist, 20f, 13);
+                R_Activated = true;
+                isDebounce = false;
+            }
+            else if (nowchar == 2) //짧게 발차기
+            {
+                isDebounce = true;
+                Debug.Log("Skill R_2 Activated");
+                AddDataToList("SkillRCD_2", Cooldownlist, 10f, 0);
+                StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(1f, 2f), 0.1f, 30f, false, 20f, 0f, 14));
+                isDebounce = false;
+            }
+            else if (nowchar == 3)
+            {
+                //패시브 스킬임(구현해야함, 3타 패시브)
+            }
         }
     }
 
@@ -290,7 +341,6 @@ public class PlayerTemporary : MonoBehaviour
         if (!Stunlist.Contains("Stun") && !Cooldownlist.Contains("Dash"))
             rb2d.linearVelocity = new Vector2(moveInput * movementSpeed, rb2d.linearVelocity.y);
     }
-
     private IEnumerator ResetDebounce(float delay)
     {
         yield return new WaitForSeconds(delay);
@@ -308,6 +358,10 @@ public class PlayerTemporary : MonoBehaviour
             if (logic == 1)
             {
                 stack_Q_char1 += 1;
+            }
+            else if (logic == 13)
+            {
+                R_Activated = false;
             }
         }
     }
@@ -368,11 +422,83 @@ public class PlayerTemporary : MonoBehaviour
         isDebounce = false;
     }
 
-    //private IEnumerator EnemyAttack(Vector2 offset, Vector2 size, float duration, float damage, float logic, float startwhere, float velocity)
-    //{
-    //    yield return null;
-    //}
-    private IEnumerator ExecuteAttack(Vector2 offset, Vector2 size, float duration, float damage, bool isDownSmash, float Force_x, float Force_y, float logic)
+    private IEnumerator EnemyAttack_1(string type, Vector2 position, Vector2 scale, float duration, float Damage)
+    {
+        GameObject targetPrefab = null;
+
+        // 3. 묶어둔 prefab 안에서 알맞은 오브젝트를 꺼내오도록 분기 처리
+        if (type == "attack_down")
+        {
+            targetPrefab = prefab.attack_down;
+        }
+        else if (type == "attack_up")
+        {
+            targetPrefab = prefab.attack_up;
+        }
+
+        if (targetPrefab != null)
+        {
+            // 이제 new GameObject(type) 대신 실제 프리팹 모양을 복사해서 소환합니다!
+            GameObject enemyAttack = Instantiate(targetPrefab, position, Quaternion.identity);
+            enemyAttack.transform.localScale = scale;
+
+            yield return new WaitForSeconds(duration);
+
+            Destroy(enemyAttack);
+        }
+
+        if (type == "attack_down")
+        {
+            StartCoroutine(Real_EnemyAttack_1("real_attack_down", position, scale, Damage));
+        }
+        else if (type == "attack_up")
+        {
+            StartCoroutine(Real_EnemyAttack_1("real_attack_up", position, scale, Damage));
+        }
+    }
+    private IEnumerator Real_EnemyAttack_1(string type, Vector2 position, Vector2 scale, float Damage)
+    {
+        GameObject targetPrefab = null;
+
+        if (type == "real_attack_down") targetPrefab = prefab.real_attack_down;
+        else if (type == "real_attack_up") targetPrefab = prefab.real_attack_up;
+
+        if (targetPrefab != null)
+        {
+            // 1. 레이저 오브젝트 생성 및 크기 조절
+            GameObject enemyAttack = Instantiate(targetPrefab, position, Quaternion.identity);
+            enemyAttack.transform.localScale = scale;
+
+            // 2. 레이저 발사 방향 결정
+            Vector3 direction = Vector3.down; // 기본값 아래쪽
+            if (type == "real_attack_up")
+            {
+                direction = Vector3.up; // 위쪽 프리팹이면 발사 방향을 위로!
+            }
+
+            // 3. ★ 레이저 빔(BoxCast) 발사 ★
+            // position에서 시작해서 direction 방향으로 맵 끝까지(100f 거리만큼) 
+            // scale 크기만 한 직사각형 레이저 빔을 쏘아 투과된 모든 물체를 가져옵니다.
+            RaycastHit[] hits = Physics.BoxCastAll(position, scale / 2f, direction, Quaternion.identity, 100f);
+
+            // 4. 관통된 물체들 중 플레이어가 있는지 검사
+            foreach (var hit in hits)
+            {
+                if (hit.collider.name == "player")
+                {
+                    Debug.Log("Player hit by Laser (" + type + ") for " + Damage + " damage.");
+                    // 레이저가 관통하므로 플레이어를 맞춰도 멈추지 않고 계속 검사하려면 break를 지워도 됨!
+                    break;
+                }
+            }
+
+            // 5. 1초 동안 레이저 보여준 뒤 삭제
+            yield return new WaitForSeconds(1);
+            Destroy(enemyAttack);
+        }
+    }
+
+    private IEnumerator ExecuteAttack(Vector2 offset, Vector2 size, float duration, float damage, bool isDownSmash, float Force_x, float Force_y, float logic) //대미지 구현 해야함
     {
         float dir = sprdr.flipX ? -1f : 1f;
 
@@ -421,12 +547,25 @@ public class PlayerTemporary : MonoBehaviour
                         {
                             enemyRb.AddForce(new Vector2(dir * Force_x, Force_y), ForceMode2D.Impulse);
                         }
-                        if (logic == 1f)
+                        if (logic == 1f && R_Activated == false)
                         {
                             stack_char1 = 1;
                         }
+                        else if (logic == 1f && R_Activated == true)
+                        {
+                            stack_char1 = 2;
+                        }
                     }
 
+                    if (nowchar == 4)
+                    {
+                        stack_char3 += 1;
+                    }
+
+                    if (nowchar == 4 && stack_char3 == 3)
+                    {
+                        stack_char3 = 0;
+                    }
                 }
             }
             elapsed += Time.deltaTime;
@@ -524,7 +663,7 @@ public class PlayerTemporary : MonoBehaviour
         {
             Cooldownlist.Remove("SkillWCD_1");
         }
-    }
+    }   
 
     private void OnDrawGizmos()
     {
