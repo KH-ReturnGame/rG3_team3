@@ -94,6 +94,11 @@ public class Player : MonoBehaviour
                 StartCoroutine(Jump());
             }
         }
+        if (Input.GetKeyDown(KeyCode.Q)) // Jump + 추후 수정 예정 + 공중 대쉬 + 더블 점프 + 내려찍기 등 
+        {
+             StartCoroutine(Dash());
+            
+        }
 
 
     }
@@ -138,6 +143,34 @@ public class Player : MonoBehaviour
         body2d.linearVelocity = new Vector2(body2d.linearVelocity.x, jumpHeight);
 
     }
+
+    private IEnumerator Dash()
+    {
+        //isDashing = true;
+
+        // 바라보는 방향 결정
+        float dir = spdr.flipX ? -1f : 1f;
+
+
+        animtr.SetTrigger("isDash");
+
+        yield return new WaitForSeconds(0.2f);
+
+        // 대쉬 전 순간적으로 속도를 0으로 초기화 (더 깔끔한 대쉬를 위해)
+        body2d.linearVelocity = new Vector2(0, body2d.linearVelocity.y);
+
+        // 대쉬 힘 가하기
+        body2d.AddForce(new Vector2(dir * 80f, 0), ForceMode2D.Impulse);
+
+
+
+        // 대쉬 지속 시간 (원하는 만큼 조절)
+        yield return new WaitForSeconds(0.075f);
+
+//
+    }
+
+
 
  
 }
