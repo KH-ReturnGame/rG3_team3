@@ -1,13 +1,19 @@
 using UnityEngine;
-
+using System.Collections;
+using System.Collections.Generic;
 public class Player : MonoBehaviour
 {
-    private Rigidbody2D body2d;
-    private Animator animtr;
-    private SpriteRenderer spdr; 
+    [SerializeField]  private Rigidbody2D body2d;
+    [SerializeField]  private Animator animtr;
+    [SerializeField]  private SpriteRenderer spdr;
+
+    Transform spriteRenderOBJ;
 
     // input Relavant 
     public float xInput, yInput;
+
+    // direction properties
+    public bool isfacingRight = true;
 
     // basic_statement Relavant
     public bool isGrounded;
@@ -22,11 +28,15 @@ public class Player : MonoBehaviour
 
 
 
+
     void Awake()
     {
+        spriteRenderOBJ = transform.Find("_SpriteRenderer");
+
         body2d = GetComponent<Rigidbody2D>();
-        spdr = GetComponent<SpriteRenderer>();
-        animtr = GetComponent<Animator>();
+        // IN SPRITE RENDERER
+        spdr = spriteRenderOBJ.GetComponent<SpriteRenderer>();
+        animtr = spriteRenderOBJ.GetComponent<Animator>();
 
     }
 
@@ -57,12 +67,21 @@ public class Player : MonoBehaviour
     void FixedUpdate()
     {
         body2d.linearVelocity = new Vector2(xInput * moveSpeed, body2d.linearVelocity.y);
+
+        animtr.SetFloat("yVelocity", body2d.linearVelocityY);
+
+
+
+        directionInspection();
     }
 
     void OnDrawGizmos()
     {
 
     }
+
+
+
 
     // keyInputsHandler
 
@@ -72,25 +91,53 @@ public class Player : MonoBehaviour
         {
             if (isGrounded == true)
             {
-                body2d.linearVelocity = new Vector2(body2d.linearVelocity.x, jumpHeight);
+                StartCoroutine(Jump());
             }
         }
 
 
     }
 
+    // directionInspection
+
+    private void directionInspection()
+    {
+        if (transform.rotation.y != 0f)
+            isfacingRight = false;
+        else
+            isfacingRight = true;
+    }
+
     // spriteManipulator
+
+
 
     public void setSprite() // 나중에 모션 발동중에 뒤집히는거 감안해서 뭐해야하는듯
     {
         // sprite x/y flip (left or right) + need to add '스킬을 쓰고 있어서 방향을 못바꾸는가?' check.
         if (xInput > 0)
-            spdr.flipX = false;
+           transform.eulerAngles = new Vector3(transform.eulerAngles.x, 0f, transform.eulerAngles.z);
+           
         else if (xInput < 0)
-            spdr.flipX = true;
+           transform.eulerAngles = new Vector3(transform.eulerAngles.x, 180f, transform.eulerAngles.z);
+
     }
 
     // basicAnimationhandler
 
 
+
+    // ======================================================================================================================================================
+    // ======================================================================================================================================================
+    // ======================================================================================================================================================
+
+    private IEnumerator Jump()
+    {
+        animtr.SetTrigger("isJumpTrigger");
+        yield return new WaitForSeconds(.1f);
+        body2d.linearVelocity = new Vector2(body2d.linearVelocity.x, jumpHeight);
+
+    }
+
+ 
 }
