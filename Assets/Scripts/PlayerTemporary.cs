@@ -1,6 +1,7 @@
 using NUnit.Framework.Constraints;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.ShaderGraph.Internal;
 using UnityEngine;
 
 [System.Serializable]
@@ -10,6 +11,8 @@ public class AttackPrefab
     public GameObject attack_up;
     public GameObject real_attack_down;
     public GameObject real_attack_up;
+    public GameObject attack_cricle;
+    public GameObject real_attack_circle;
 }
 public class PlayerTemporary : MonoBehaviour
 {
@@ -43,8 +46,11 @@ public class PlayerTemporary : MonoBehaviour
 
     public bool isDebounce = false;
 
-
-
+    //보스 관련
+    public float Boss_HP = 1000f;
+    public bool Boss_Acting = false;
+    public float Boss_Who = 0;
+    public float Boss_Pattern = 0;
 
 
     private bool isGrounded;
@@ -52,6 +58,7 @@ public class PlayerTemporary : MonoBehaviour
     public float checkRadius = 0.2f;
     public float look = 0f;
     public float nowchar = 1;
+    public float strength = 100f;
     //1번째 캐릭터 변수
     private Dictionary<Collider2D, float> enemyStackRegister = new Dictionary<Collider2D, float>();
     public float stack_char1 = 0; //적이 받는 스택
@@ -61,6 +68,7 @@ public class PlayerTemporary : MonoBehaviour
     public float punchup = 1;
     //3번째 캐릭터 스킬 변수
     public float stack_char3 = 0;
+    public float stack_char3_2 = 0;
 
     public int punchupstack = 0;
     public float defend = 0;
@@ -71,6 +79,7 @@ public class PlayerTemporary : MonoBehaviour
         rb2d = GetComponent<Rigidbody2D>();
         sprdr = GetComponent<SpriteRenderer>();
         animtr = GetComponent<Animator>();
+        Boss_Who = Random.Range(1, 2);
     }
 
     void Update()
@@ -149,41 +158,63 @@ public class PlayerTemporary : MonoBehaviour
             }
         }
 
-        if (Input.GetKeyDown(KeyCode.K))
+        //보스코드
+        if (Boss_Acting == false && Boss_HP <= 0)
         {
-            GameObject player = GameObject.Find("Player");
+            Debug.Log("보스 사망");
+        }
+        else if (Boss_Acting == false && Boss_HP > 0)
+        {
+            Boss_Acting = true;
+            if (Boss_Who == 1)  //보스1 패턴
+            {
+                Boss_Pattern = Random.Range(1, 5);
+                if (Boss_Pattern == 1)
+                {
+                    StartCoroutine(Boss_Pattern_1_1());
+                }
+                else if (Boss_Pattern == 2)
+                {
+                    StartCoroutine(Boss_Pattern_1_2());
+                }
+                else if (Boss_Pattern == 3)
+                {
+                    StartCoroutine(Boss_Pattern_1_3());
+                }
+                else if (Boss_Pattern == 4)
+                {
+                    StartCoroutine(Boss_Pattern_1_4());
+                }
+            }
+            else if (Boss_Who == 2) //보스2 패턴
+            {
 
-            Vector2 player_position = player.transform.position;
-            playerTransForm = player.transform;
-
-            float start_x_1 = player_position.x;
-            float start_y_1 = player_position.y;
-
-            StartCoroutine(EnemyAttack_1("attack_down",new Vector2 (start_x_1, start_y_1),new Vector2 (100, 1),2, 10));
+            }
         }
 
+        //캐릭터코드
         if (Input.GetKeyDown(KeyCode.Alpha1) && !Stunlist.Contains("Stun"))    //캐릭터 교체
         {
             Debug.Log("1변경");
-            stack_char3 = 0;
+            stack_char3_2 = 0;
             nowchar = 1;
         }
         else if (Input.GetKeyDown(KeyCode.Alpha2) && !Stunlist.Contains("Stun"))
         {
             Debug.Log("2변경");
-            stack_char3 = 0;
+            stack_char3_2 = 0;
             nowchar = 2;
         }
         else if (Input.GetKeyDown(KeyCode.Alpha3) && !Stunlist.Contains("Stun"))
         {
             Debug.Log("3변경");
-            stack_char3 = 0;
+            stack_char3_2 = 0;
             nowchar = 3;
         }
         else if (Input.GetKeyDown(KeyCode.Alpha4) && !Stunlist.Contains("Stun"))
         {
             Debug.Log("4변경");
-            stack_char3 = 0;
+            stack_char3_2 = 0;
             nowchar = 4;
         }
 
@@ -195,10 +226,10 @@ public class PlayerTemporary : MonoBehaviour
                 {
                     isDebounce = true;
                     stack_Q_char1 -= 1;
-                    AddDataToList("SkillQCD_1", Cooldownlist, 7f, 1);
+                    AddDataToList("SkillQCD_1", Cooldownlist, 12f, 1);
                     StartCoroutine(ResetDebounce(0.2f));
                     Debug.Log("Skill Q_1 Activated");
-                    StartCoroutine(ExecuteAttack(new Vector2(1f, 0f), new Vector2(2f, 3f), 0.15f, 100f, false, 0f, 0f, 1f));
+                    StartCoroutine(ExecuteAttack(new Vector2(1f, 0f), new Vector2(2f, 3f), 0.15f, strength/5, false, 0f, 0f, 1f));
                     isDebounce = false;
                 }
             }
@@ -208,13 +239,11 @@ public class PlayerTemporary : MonoBehaviour
                 {
                     isDebounce = true;
                     look = sprdr.flipX ? -1f : 1f;
-                    Debug.Log("Skill Q Activated");
-                    AddDataToList("SkillQCD_2", Cooldownlist, 3f, 0);
+                    AddDataToList("SkillQCD_2", Cooldownlist, 10f, 0);
                     Debug.Log("Skill Q_2 Activated");
-                    AddDataToList("SkillQCD_2", Cooldownlist, 5f, 0);
                     AddDataToList("Dash", Cooldownlist, 0.2f, 0);
                     rb2d.AddForce(new Vector2(look * 20f, 0f), ForceMode2D.Impulse);
-                    StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, 30f, false, 15f, 0f, 0));
+                    StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, strength/5, false, 15f, 0f, 0));
                     isDebounce = false;
                 }
             }
@@ -227,7 +256,7 @@ public class PlayerTemporary : MonoBehaviour
                     AddDataToList("SkillQCD_3", Cooldownlist, 8f, 0);
                     AddDataToList("SkillQCD_3_2", Cooldownlist, 3f, 0);
                     AddDataToList("SkillQ_2", Cooldownlist, 15f, 0);
-                    StartCoroutine(ExecuteAttack(new Vector2(1.5f, 0f), new Vector2(3f, 1f), 0.1f, 30f, false, 0f, 0f, 0));
+                    StartCoroutine(ExecuteAttack(new Vector2(1.5f, 0f), new Vector2(3f, 1f), 0.1f, strength/10, false, 0f, 0f, 0));
                     isDebounce = false;
                 }
                 else if (Cooldownlist.Contains("SkillQ_2") && !Cooldownlist.Contains("SkillQCD_3_2"))
@@ -237,7 +266,7 @@ public class PlayerTemporary : MonoBehaviour
                     Debug.Log("Skill Q_3_2 Activated");
                     AddDataToList("Dash", Cooldownlist, 0.15f, 0);
                     rb2d.AddForce(new Vector2(look * 7f, 0f), ForceMode2D.Impulse);
-                    StartCoroutine(ExecuteAttack(new Vector2(3.4f, 0f), new Vector2(6.8f, 1f), 0.1f, 30f, false, 0f, 0f, 0));
+                    StartCoroutine(ExecuteAttack(new Vector2(3.4f, 0f), new Vector2(6.8f, 1f), 0.1f, strength/5, false, 0f, 0f, 0));
                     isDebounce = false;
                 }
             }
@@ -252,7 +281,7 @@ public class PlayerTemporary : MonoBehaviour
                 {
                     isDebounce = true;
                     Debug.Log("Skill W_1 Activated");
-                    AddDataToList("SkillWCD_1", Cooldownlist, 5f, 0);
+                    AddDataToList("SkillWCD_1", Cooldownlist, 10f, 0);
                     TeleportLogic(0.3f, Enemy);
                     isDebounce = false;
                 }
@@ -263,7 +292,7 @@ public class PlayerTemporary : MonoBehaviour
                 {
                     isDebounce = true;
                     Debug.Log("Skill W_2 Activated");
-                    AddDataToList("SkillWCD_2", Cooldownlist, 5f, 0);
+                    AddDataToList("SkillWCD_2", Cooldownlist, 7f, 0);
                     Char_2_W(0.3f);
                 }
             }
@@ -273,7 +302,7 @@ public class PlayerTemporary : MonoBehaviour
                 {
                     isDebounce = true;
                     Debug.Log("Skill W_3 Activated");
-                    AddDataToList("SkillWCD_3", Cooldownlist, 6f, 0);
+                    AddDataToList("SkillWCD_3", Cooldownlist, 12f, 0);
                     StartCoroutine(Char_3_W());
                     isDebounce = false;
                 }
@@ -293,17 +322,17 @@ public class PlayerTemporary : MonoBehaviour
                     isDebounce = true;
                     Debug.Log("Skill E_2 Activated");
                     AddDataToList("SkillECD_2", Cooldownlist, 6f, 0);
-                    StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(2f, 3f), 0.1f, 30f, false, 0f, 20f, 0));
+                    StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(2f, 3f), 0.1f, strength/7, false, 0f, 20f, 0));
                     isDebounce = false;
                 }
             }
-            else if (nowchar == 3)
+            else if (nowchar == 3)  
             {
                 if (!Cooldownlist.Contains("SkillECD_3"))
                 {
                     isDebounce = true;
                     Debug.Log("Skill E_3 Activated");
-                    AddDataToList("SkillECD_3", Cooldownlist, 6f, 0);
+                    AddDataToList("SkillECD_3", Cooldownlist, 12f, 0);
                     StartCoroutine(Char_3_E(0.3f));
                     isDebounce = false;
                 }
@@ -324,13 +353,13 @@ public class PlayerTemporary : MonoBehaviour
             {
                 isDebounce = true;
                 Debug.Log("Skill R_2 Activated");
-                AddDataToList("SkillRCD_2", Cooldownlist, 10f, 0);
-                StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(1f, 2f), 0.1f, 30f, false, 20f, 0f, 14));
+                AddDataToList("SkillRCD_2", Cooldownlist, 20f, 0);
+                StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(1f, 2f), 0.1f, strength/2, false, 20f, 0f, 14));
                 isDebounce = false;
             }
             else if (nowchar == 3)
             {
-                //패시브 스킬임(구현해야함, 3타 패시브)
+                //패시브 스킬임(구현함 5타 패시브)
             }
         }
     }
@@ -418,82 +447,87 @@ public class PlayerTemporary : MonoBehaviour
             yield return null;
         }
         playerTransForm.position = new Vector2(finish_x, finish_y);
-        StartCoroutine(ExecuteAttack(new Vector2(0f, -1f), new Vector2(5f, 1f), 0.1f, 30f, false, 0f, 7f, 0));
+        StartCoroutine(ExecuteAttack(new Vector2(0f, -1f), new Vector2(5f, 1f), 0.1f, strength / 5, false, 0f, 7f, 0));
         isDebounce = false;
     }
 
-    private IEnumerator EnemyAttack_1(string type, Vector2 position, Vector2 scale, float duration, float Damage)
+    private IEnumerator EnemyAttack_1(string type_1, string type_2, Vector2 position_1, Vector2 scale_1, Vector3 angle_1, Vector2 position_2, Vector2 scale_2, Vector3 angle_2, float duration_1, float duration_2, float Damage, float Logic)
     {
         GameObject targetPrefab = null;
 
-        // 3. 묶어둔 prefab 안에서 알맞은 오브젝트를 꺼내오도록 분기 처리
-        if (type == "attack_down")
+        if (type_1 == "attack_down")
         {
             targetPrefab = prefab.attack_down;
         }
-        else if (type == "attack_up")
+        else if (type_1 == "attack_up")
         {
             targetPrefab = prefab.attack_up;
+        }
+        else if (type_1 == "attack_circle")
+        {
+            targetPrefab = prefab.attack_cricle;
         }
 
         if (targetPrefab != null)
         {
-            // 이제 new GameObject(type) 대신 실제 프리팹 모양을 복사해서 소환합니다!
-            GameObject enemyAttack = Instantiate(targetPrefab, position, Quaternion.identity);
-            enemyAttack.transform.localScale = scale;
+            
+            GameObject enemyAttack = Instantiate(targetPrefab, position_1, Quaternion.identity);
+            enemyAttack.transform.localScale = scale_1;
+            enemyAttack.transform.eulerAngles = angle_1;
 
-            yield return new WaitForSeconds(duration);
+            yield return new WaitForSeconds(duration_1);
 
             Destroy(enemyAttack);
         }
 
-        if (type == "attack_down")
-        {
-            StartCoroutine(Real_EnemyAttack_1("real_attack_down", position, scale, Damage));
-        }
-        else if (type == "attack_up")
-        {
-            StartCoroutine(Real_EnemyAttack_1("real_attack_up", position, scale, Damage));
-        }
+        
+        StartCoroutine(Real_EnemyAttack_1(type_2, position_2, scale_2, duration_2, Damage, Logic));
+        
     }
-    private IEnumerator Real_EnemyAttack_1(string type, Vector2 position, Vector2 scale, float Damage)
+    private IEnumerator Real_EnemyAttack_1(string type, Vector2 position, Vector2 scale, float duratiron, float Damage, float logic)
     {
         GameObject targetPrefab = null;
 
         if (type == "real_attack_down") targetPrefab = prefab.real_attack_down;
         else if (type == "real_attack_up") targetPrefab = prefab.real_attack_up;
+        else if (type == "real_attack_circle") targetPrefab = prefab.real_attack_circle;
 
         if (targetPrefab != null)
         {
-            // 1. 레이저 오브젝트 생성 및 크기 조절
+
             GameObject enemyAttack = Instantiate(targetPrefab, position, Quaternion.identity);
             enemyAttack.transform.localScale = scale;
 
-            // 2. 레이저 발사 방향 결정
-            Vector3 direction = Vector3.down; // 기본값 아래쪽
+            Vector3 direction = Vector3.down;
             if (type == "real_attack_up")
             {
-                direction = Vector3.up; // 위쪽 프리팹이면 발사 방향을 위로!
+                direction = Vector3.up;
             }
 
-            // 3. ★ 레이저 빔(BoxCast) 발사 ★
-            // position에서 시작해서 direction 방향으로 맵 끝까지(100f 거리만큼) 
-            // scale 크기만 한 직사각형 레이저 빔을 쏘아 투과된 모든 물체를 가져옵니다.
+            if(logic == 1f) //돌아가는 로직
+            {
+                float step = 0.9f;
+                for(int i = 0; i < 101; i++)
+                {
+                    enemyAttack.transform.Rotate(Vector3.forward, step);
+                    yield return null;
+                }
+                Destroy(enemyAttack);
+            }
+
             RaycastHit[] hits = Physics.BoxCastAll(position, scale / 2f, direction, Quaternion.identity, 100f);
 
-            // 4. 관통된 물체들 중 플레이어가 있는지 검사
+
             foreach (var hit in hits)
             {
                 if (hit.collider.name == "player")
                 {
                     Debug.Log("Player hit by Laser (" + type + ") for " + Damage + " damage.");
-                    // 레이저가 관통하므로 플레이어를 맞춰도 멈추지 않고 계속 검사하려면 break를 지워도 됨!
                     break;
                 }
             }
 
-            // 5. 1초 동안 레이저 보여준 뒤 삭제
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(duratiron);
             Destroy(enemyAttack);
         }
     }
@@ -537,16 +571,20 @@ public class PlayerTemporary : MonoBehaviour
                             enemyRb.linearVelocity = Vector2.zero;
                             enemyRb.AddForce(Vector2.down * Force_y, ForceMode2D.Impulse);
                             Debug.Log("DOWN SMASH!");
+                            Boss_HP -= strength / 10;
                         }
                         else if (isUptilt)
                         {
                             enemyRb.linearVelocity = Vector2.zero;
                             enemyRb.AddForce(Vector2.up * Force_y, ForceMode2D.Impulse);
+                            Boss_HP -= strength / 20;
                         }
                         else
                         {
                             enemyRb.AddForce(new Vector2(dir * Force_x, Force_y), ForceMode2D.Impulse);
+                            Boss_HP -= strength / 20;
                         }
+
                         if (logic == 1f && R_Activated == false)
                         {
                             stack_char1 = 1;
@@ -554,6 +592,17 @@ public class PlayerTemporary : MonoBehaviour
                         else if (logic == 1f && R_Activated == true)
                         {
                             stack_char1 = 2;
+                        }
+
+                        if(nowchar == 3)
+                        {
+                            stack_char3_2 += 1;
+                        }
+
+                        if (stack_char3_2 == 5 && nowchar ==3)
+                        {
+                            stack_char3_2 = 0;
+                            Boss_HP -= strength / 5;
                         }
                     }
 
@@ -572,7 +621,7 @@ public class PlayerTemporary : MonoBehaviour
             yield return null;
         }
     }
-    public IEnumerator Char_3_E(float radius)
+    public IEnumerator Char_3_E(float radius) //해야함
     {
         Vector3 mouseScreenPos = Input.mousePosition;
         mouseScreenPos.z = 10f;
@@ -588,19 +637,19 @@ public class PlayerTemporary : MonoBehaviour
             transform.position = hitenemy.transform.position + Vector3.up * 100f;
             rb2d.AddForce(new Vector2(0f, -30f), ForceMode2D.Impulse);
             yield return new WaitForSeconds(0.1f);
-            StartCoroutine(ExecuteAttack(new Vector2(0f, -1f), new Vector2(2f, 5f), 0.1f, 30f, false, 0f, 7f, 0));
+            StartCoroutine(ExecuteAttack(new Vector2(0f, -1f), new Vector2(2f, 5f), 0.1f, strength*40/100, false, 0f, 7f, 0));
         }
     }
     public IEnumerator Char_3_W()
     {
-        StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(2.3f, 3f), 0.1f, 30f, false, 0f, 0f, 0));
+        StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(2.3f, 3f), 0.1f, strength/10, false, 0f, 0f, 0));
         Debug.Log("1");
         yield return new WaitForSeconds(0.5f);
         Debug.Log("2");
-        StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(2.3f, 3f), 0.1f, 30f, false, 0f, 0f, 0));
+        StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(2.3f, 3f), 0.1f, strength/10, false, 0f, 0f, 0));
         yield return new WaitForSeconds(0.6f);
         Debug.Log("3");
-        StartCoroutine(ExecuteAttack(new Vector2(1.5f, 0f), new Vector2(3f, 1f), 0.1f, 50f, false, 0f, 0f, 0));
+        StartCoroutine(ExecuteAttack(new Vector2(1.5f, 0f), new Vector2(3f, 1f), 0.1f, strength/5, false, 0f, 0f, 0));
     }
 
     private void Char_2_W(float radius)
@@ -653,17 +702,19 @@ public class PlayerTemporary : MonoBehaviour
                 transform.position = hitenemy.transform.position;
                 Cooldownlist.Remove("SkillWCD_1");
                 stack_char1 -= 1;
+                Boss_HP -= strength / 5;
             }
             else
             {
                 transform.position = hitenemy.transform.position;
+                Boss_HP -= strength / 5;
             }
         }
         else
         {
             Cooldownlist.Remove("SkillWCD_1");
         }
-    }   
+    }
 
     private void OnDrawGizmos()
     {
@@ -672,6 +723,66 @@ public class PlayerTemporary : MonoBehaviour
         float dir = sprdr.flipX ? -1f : 1f;
         Gizmos.DrawWireCube(transform.position + new Vector3(1f * dir, 0f, 0), new Vector3(2f, 3f, 1f));
         Gizmos.DrawWireCube(transform.position + new Vector3(0f * dir, 0f, 0), new Vector3(5f, 1f, 1f));
+    }
+    //보스코드
+    private IEnumerator Boss_Pattern_1_1()
+    {
+
+        GameObject boss = GameObject.Find("Boss_1");
+        boss.transform.position = new Vector2(5, -3);
+
+        for (int i = 0; i < 10; i++)
+        {
+            GameObject player = GameObject.Find("Player");
+
+            Vector2 player_position = player.transform.position;
+            playerTransForm = player.transform;
+
+            float start_x_1 = player_position.x;
+            float start_y_1 = player_position.y;
+            StartCoroutine(EnemyAttack_1("attack_up", "real_attack_up", new Vector2(start_x_1, start_y_1), new Vector2(1, 100), new Vector3(0,0,0), new Vector2(start_x_1, start_y_1), new Vector2(1, 100), new Vector3(0, 0, 0), 1f, 1f, 10, 0));
+            yield return new WaitForSeconds(0.1f);
+        }
+        yield return new WaitForSeconds(7f);
+        Boss_Acting = false;
+    }
+
+    private IEnumerator Boss_Pattern_1_2()
+    {
+        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, 0), new Vector2(20, 100), new Vector3(0, 0, 0), new Vector2(0, 0), new Vector2(20, 100), new Vector3(0, 0, 0), 2f, 4f, 100f, 0));
+        yield return new WaitForSeconds(6f);
+        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(12, 0), new Vector2(20, 100), new Vector3(0, 0, 0), new Vector2(12, 0), new Vector2(20, 100), new Vector3(0, 0, 0), 2f, 4f, 100f, 0));
+        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(-12, 0), new Vector2(20, 100), new Vector3(0, 0, 0), new Vector2(-12, 0), new Vector2(20, 100), new Vector3(0, 0, 0), 2f, 4f, 100f, 0));
+        yield return new WaitForSeconds(6f);
+        GameObject boss = GameObject.Find("Boss_1");
+        boss.transform.position = new Vector2(5, -3);
+        yield return new WaitForSeconds(7f);
+        Boss_Acting = false;
+    }
+
+    private IEnumerator Boss_Pattern_1_3()
+    {
+        StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(0, 0), new Vector2(15, 15), new Vector3(0, 0, 0), new Vector2(0, 0), new Vector2(15, 15), new Vector3(0, 0, 0), 2f, 2f, 100f, 0));
+        yield return new WaitForSeconds(4f);
+        StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(10, 10), new Vector2(20, 20), new Vector3(0, 0, 0), new Vector2(10, 10), new Vector2(20, 20), new Vector3(0, 0, 0), 2f, 2f, 100f, 0));
+        StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(10, -10), new Vector2(20, 20), new Vector3(0, 0, 0), new Vector2(10, -10), new Vector2(20, 20), new Vector3(0, 0, 0), 2f, 2f, 100f, 0));
+        StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(-10, 10), new Vector2(20, 20), new Vector3(0, 0, 0), new Vector2(-10, 10), new Vector2(20, 20), new Vector3(0, 0, 0), 2f, 2f, 100f, 0));
+        StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(-10, -10), new Vector2(20, 20), new Vector3(0, 0, 0), new Vector2(-10, -10), new Vector2(20, 20), new Vector3(0, 0, 0), 2f, 2f, 100f, 0));
+        yield return new WaitForSeconds(4f);
+        GameObject boss = GameObject.Find("Boss_1");
+        boss.transform.position = new Vector2(5, -3);
+        yield return new WaitForSeconds(7f);
+        Boss_Acting = false;
+    }
+    private IEnumerator Boss_Pattern_1_4()
+    {
+        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, 0), new Vector2(1, 100), new Vector3(0, 0, 0), new Vector2(0, 0), new Vector2(1, 100), new Vector3(0, 0, 0), 2f, 10f, 100f, 1f));
+        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, 0), new Vector2(100, 1), new Vector3(0, 0, 0), new Vector2(0, 0), new Vector2(100, 1), new Vector3(0, 0, 0), 2f, 10f, 100f, 1f));
+        yield return new WaitForSeconds(10f);
+        GameObject boss = GameObject.Find("Boss_1");
+        boss.transform.position = new Vector2(5, -3);
+        yield return new WaitForSeconds(7f);
+        Boss_Acting = false;
     }
 }
     
