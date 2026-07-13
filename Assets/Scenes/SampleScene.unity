@@ -798,8 +798,13 @@ Transform:
   m_GameObject: {fileID: 980920803}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+<<<<<<< Updated upstream
   m_LocalPosition: {x: -2.96, y: 3.8, z: 0}
   m_LocalScale: {x: 2.5, y: 2.5, z: 1}
+=======
+  m_LocalPosition: {x: -18.98, y: -3.07, z: 0}
+  m_LocalScale: {x: 2, y: 2, z: 1}
+>>>>>>> Stashed changes
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -1207,7 +1212,15 @@ MonoBehaviour:
   Cooldownlist: []
   PressingKey: 
   isDebounce: 0
+<<<<<<< Updated upstream
   strength: 100
+=======
+  Boss_HP: 1000
+  Boss_Acting: 0
+  Boss_Who: 0
+  Boss_Pattern: 0
+  Boss_2_1_Acting: 0
+>>>>>>> Stashed changes
   groundCheck: {fileID: 1129845425}
   checkRadius: 3
   look: 0
