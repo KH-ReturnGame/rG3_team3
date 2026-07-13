@@ -71,10 +71,10 @@ public class PlayerTemporary : MonoBehaviour
         else if (moveInput < 0)
             sprdr.flipX = true;
 
-        if (moveInput != 0)
-            animtr.SetBool("isWalking", true);
-        else
-            animtr.SetBool("isWalking", false);
+        //if (moveInput != 0)
+        //    animtr.SetBool("isWalking", true);
+        //else
+        //    animtr.SetBool("isWalking", false);
 
         if (Combo != 0 && Time.time - lastComboChangeTime >= 1f)
         {

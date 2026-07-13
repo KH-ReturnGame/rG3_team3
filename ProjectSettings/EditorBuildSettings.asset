@@ -17,5 +17,23 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/BossScene.unity
     guid: d246477b2527f3d46b8c58c78b942bf2
+  - enabled: 1
+    path: Assets/Scenes/TestScene_Start.unity
+    guid: 4956fbe82abaa0341bb7541aeb208f98
+  - enabled: 1
+    path: Assets/Scenes/TestScene_Menu.unity
+    guid: 43d1f363d3b02a941bbfa136987a9387
+  - enabled: 1
+    path: Assets/Scenes/TestScene_1.unity
+    guid: 36a6ad21cd35d4644880ac96a4926467
+  - enabled: 1
+    path: Assets/Scenes/TestScene_2.unity
+    guid: 147a437046c4b8a429aa8cec1b1a5f3f
+  - enabled: 1
+    path: Assets/Scenes/TestScene_3.unity
+    guid: 6e352047e4101e14ab7a38127c555927
+  - enabled: 1
+    path: Assets/Scenes/TestScene_Setting.unity
+    guid: ce69730bead869543ba5354210b88c70
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}

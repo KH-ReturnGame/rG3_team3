@@ -3,64 +3,58 @@ using UnityEngine.SceneManagement;
 
 public class Manager : MonoBehaviour
 {
-    int gold;
-    int exp;
-    int difficulty;
-
     public static Manager Instance;
+
+    public float health;
+    public int score;
+    public string currentScene;
+
+    public GameObject playerPrefab;
+    GameObject player;
 
     void Awake()
     {
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
+        if(Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        health = 100;
+        score = 0;
     }
 
     // Update is called once per frame
     void Update()
     {
-        
-    }
-
-    void Skill1()
-    {
-
-    }
-
-    void Skill2()
-    {
-
-    }
-
-    void Skill3()
-    {
-
-    }
-
-     public void ChangeScene()
-    {
-        difficulty = Random.Range(1, 4);
-
-        if (difficulty == 1)
+        if (player == null)
         {
-            SceneManager.LoadScene("StartScene");
+            player = Instantiate(playerPrefab);
+            DontDestroyOnLoad(player);
         }
-        else if (difficulty == 2)
+
+        currentScene = SceneManager.GetActiveScene().name;
+
+        if (currentScene == "TestScene_Start" || currentScene == "TestScene_Setting" || currentScene == "TestScene_Menu")
         {
-            SceneManager.LoadScene("StageScene");
-        }
-        else if (difficulty == 3)
-        {
-            SceneManager.LoadScene("BossScene");
+            player.SetActive(false);
         }
         else
         {
-            return;
+            player.SetActive(true);
         }
+    }
+
+     public void ChangeScene(string sceneName)
+    {
+        SceneManager.LoadScene(sceneName);
     }
 }

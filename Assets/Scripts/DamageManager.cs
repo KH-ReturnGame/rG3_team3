@@ -3,10 +3,8 @@ using UnityEngine;
 
 public class DamageManager : MonoBehaviour
 {
-    public GameObject circle;
     SpriteRenderer spRend;
-    
-    float health;
+
     float damage;
     float totalDamage;
     float recover;
@@ -21,33 +19,33 @@ public class DamageManager : MonoBehaviour
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        health = 100;
+        
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (health <= 0)
+        if (Manager.Instance.health <= 0)
         {
-            circle.SetActive(false);
+            gameObject.SetActive(false);
         }
     }
 
     public void GetDamage(float d)
     {
         damage = d;
-        health -= damage;
+        Manager.Instance.health -= damage;
         totalDamage += damage;
-        Debug.Log("damage: " + damage + ", total damage: " + totalDamage + ", current health is " + health);
+        //Debug.Log("damage: " + damage + ", total damage: " + totalDamage + ", current health is " + Manager.Instance.health);
     }
 
     public void Recover(float r)
     {
-        if (health < 100)
+        if (Manager.Instance.health < 100)
         {
             recover = r;
-            health += recover;
-            Debug.Log(recover + " health recoverd. current health is " + health);
+            Manager.Instance.health += recover;
+            Debug.Log(recover + " health recoverd. current health is " + Manager.Instance.health);
         }
         else
         {
@@ -83,8 +81,8 @@ public class DamageManager : MonoBehaviour
 
     public void Revive()
     {
-        health = 100;
-        circle.SetActive(true);
+        Manager.Instance.health = 100;
+        gameObject.SetActive(true);
         spRend.color = Color.white;
     }
 }

@@ -14,8 +14,8 @@ public class UIController : MonoBehaviour
         
     }
 
-    public void OnClickStart()
+    public void ChangeScene(string sceneName)
     {
-        Manager.Instance.ChangeScene();
+        Manager.Instance.ChangeScene(sceneName);
     }
 }
