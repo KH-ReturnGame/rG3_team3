@@ -79,7 +79,7 @@ public class PlayerTemporary : MonoBehaviour
         rb2d = GetComponent<Rigidbody2D>();
         sprdr = GetComponent<SpriteRenderer>();
         animtr = GetComponent<Animator>();
-        Boss_Who = Random.Range(1, 2);
+        Boss_Who = Random.Range(2, 3);
     }
 
     void Update()
@@ -166,7 +166,7 @@ public class PlayerTemporary : MonoBehaviour
         else if (Boss_Acting == false && Boss_HP > 0)
         {
             Boss_Acting = true;
-            if (Boss_Who == 1)  //보스1 패턴
+            if (Boss_Who == 1)  //보스1 패턴, 마법사
             {
                 Boss_Pattern = Random.Range(1, 5);
                 if (Boss_Pattern == 1)
@@ -186,9 +186,13 @@ public class PlayerTemporary : MonoBehaviour
                     StartCoroutine(Boss_Pattern_1_4());
                 }
             }
-            else if (Boss_Who == 2) //보스2 패턴
+            else if (Boss_Who == 2) //보스2 패턴, 검사
             {
-
+                Boss_Pattern = Random.Range(1, 2);
+                if(Boss_Pattern == 1)
+                {
+                    StartCoroutine(Boss_Pattern_2_1());
+                }
             }
         }
 
@@ -229,7 +233,7 @@ public class PlayerTemporary : MonoBehaviour
                     AddDataToList("SkillQCD_1", Cooldownlist, 12f, 1);
                     StartCoroutine(ResetDebounce(0.2f));
                     Debug.Log("Skill Q_1 Activated");
-                    StartCoroutine(ExecuteAttack(new Vector2(1f, 0f), new Vector2(2f, 3f), 0.15f, strength/5, false, 0f, 0f, 1f));
+                    StartCoroutine(ExecuteAttack(new Vector2(1f, 0f), new Vector2(2f, 3f), 0.15f, strength / 5, false, 0f, 0f, 1f));
                     isDebounce = false;
                 }
             }
@@ -243,7 +247,7 @@ public class PlayerTemporary : MonoBehaviour
                     Debug.Log("Skill Q_2 Activated");
                     AddDataToList("Dash", Cooldownlist, 0.2f, 0);
                     rb2d.AddForce(new Vector2(look * 20f, 0f), ForceMode2D.Impulse);
-                    StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, strength/5, false, 15f, 0f, 0));
+                    StartCoroutine(ExecuteAttack(new Vector2(5f, 0.5f), new Vector2(9f, 6f), 0.1f, strength / 5, false, 15f, 0f, 0));
                     isDebounce = false;
                 }
             }
@@ -256,7 +260,7 @@ public class PlayerTemporary : MonoBehaviour
                     AddDataToList("SkillQCD_3", Cooldownlist, 8f, 0);
                     AddDataToList("SkillQCD_3_2", Cooldownlist, 3f, 0);
                     AddDataToList("SkillQ_2", Cooldownlist, 15f, 0);
-                    StartCoroutine(ExecuteAttack(new Vector2(1.5f, 0f), new Vector2(3f, 1f), 0.1f, strength/10, false, 0f, 0f, 0));
+                    StartCoroutine(ExecuteAttack(new Vector2(1.5f, 0f), new Vector2(3f, 1f), 0.1f, strength / 10, false, 0f, 0f, 0));
                     isDebounce = false;
                 }
                 else if (Cooldownlist.Contains("SkillQ_2") && !Cooldownlist.Contains("SkillQCD_3_2"))
@@ -266,7 +270,7 @@ public class PlayerTemporary : MonoBehaviour
                     Debug.Log("Skill Q_3_2 Activated");
                     AddDataToList("Dash", Cooldownlist, 0.15f, 0);
                     rb2d.AddForce(new Vector2(look * 7f, 0f), ForceMode2D.Impulse);
-                    StartCoroutine(ExecuteAttack(new Vector2(3.4f, 0f), new Vector2(6.8f, 1f), 0.1f, strength/5, false, 0f, 0f, 0));
+                    StartCoroutine(ExecuteAttack(new Vector2(3.4f, 0f), new Vector2(6.8f, 1f), 0.1f, strength / 5, false, 0f, 0f, 0));
                     isDebounce = false;
                 }
             }
@@ -322,11 +326,11 @@ public class PlayerTemporary : MonoBehaviour
                     isDebounce = true;
                     Debug.Log("Skill E_2 Activated");
                     AddDataToList("SkillECD_2", Cooldownlist, 6f, 0);
-                    StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(2f, 3f), 0.1f, strength/7, false, 0f, 20f, 0));
+                    StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(2f, 3f), 0.1f, strength / 7, false, 0f, 20f, 0));
                     isDebounce = false;
                 }
             }
-            else if (nowchar == 3)  
+            else if (nowchar == 3)
             {
                 if (!Cooldownlist.Contains("SkillECD_3"))
                 {
@@ -354,7 +358,7 @@ public class PlayerTemporary : MonoBehaviour
                 isDebounce = true;
                 Debug.Log("Skill R_2 Activated");
                 AddDataToList("SkillRCD_2", Cooldownlist, 20f, 0);
-                StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(1f, 2f), 0.1f, strength/2, false, 20f, 0f, 14));
+                StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(1f, 2f), 0.1f, strength / 2, false, 20f, 0f, 14));
                 isDebounce = false;
             }
             else if (nowchar == 3)
@@ -470,7 +474,7 @@ public class PlayerTemporary : MonoBehaviour
 
         if (targetPrefab != null)
         {
-            
+
             GameObject enemyAttack = Instantiate(targetPrefab, position_1, Quaternion.identity);
             enemyAttack.transform.localScale = scale_1;
             enemyAttack.transform.eulerAngles = angle_1;
@@ -480,11 +484,11 @@ public class PlayerTemporary : MonoBehaviour
             Destroy(enemyAttack);
         }
 
-        
-        StartCoroutine(Real_EnemyAttack_1(type_2, position_2, scale_2, duration_2, Damage, Logic));
-        
+
+        StartCoroutine(Real_EnemyAttack_1(type_2, position_2, scale_2, angle_2, duration_2, Damage, Logic));
+
     }
-    private IEnumerator Real_EnemyAttack_1(string type, Vector2 position, Vector2 scale, float duratiron, float Damage, float logic)
+    private IEnumerator Real_EnemyAttack_1(string type, Vector2 position, Vector2 scale,Vector3 angle, float duratiron, float Damage, float logic)
     {
         GameObject targetPrefab = null;
 
@@ -497,6 +501,7 @@ public class PlayerTemporary : MonoBehaviour
 
             GameObject enemyAttack = Instantiate(targetPrefab, position, Quaternion.identity);
             enemyAttack.transform.localScale = scale;
+            enemyAttack.transform.eulerAngles = angle;
 
             Vector3 direction = Vector3.down;
             if (type == "real_attack_up")
@@ -504,10 +509,10 @@ public class PlayerTemporary : MonoBehaviour
                 direction = Vector3.up;
             }
 
-            if(logic == 1f) //돌아가는 로직
+            if (logic == 1f) //돌아가는 로직
             {
                 float step = 0.9f;
-                for(int i = 0; i < 101; i++)
+                for (int i = 0; i < 101; i++)
                 {
                     enemyAttack.transform.Rotate(Vector3.forward, step);
                     yield return null;
@@ -594,12 +599,12 @@ public class PlayerTemporary : MonoBehaviour
                             stack_char1 = 2;
                         }
 
-                        if(nowchar == 3)
+                        if (nowchar == 3)
                         {
                             stack_char3_2 += 1;
                         }
 
-                        if (stack_char3_2 == 5 && nowchar ==3)
+                        if (stack_char3_2 == 5 && nowchar == 3)
                         {
                             stack_char3_2 = 0;
                             Boss_HP -= strength / 5;
@@ -637,19 +642,19 @@ public class PlayerTemporary : MonoBehaviour
             transform.position = hitenemy.transform.position + Vector3.up * 100f;
             rb2d.AddForce(new Vector2(0f, -30f), ForceMode2D.Impulse);
             yield return new WaitForSeconds(0.1f);
-            StartCoroutine(ExecuteAttack(new Vector2(0f, -1f), new Vector2(2f, 5f), 0.1f, strength*40/100, false, 0f, 7f, 0));
+            StartCoroutine(ExecuteAttack(new Vector2(0f, -1f), new Vector2(2f, 5f), 0.1f, strength * 40 / 100, false, 0f, 7f, 0));
         }
     }
     public IEnumerator Char_3_W()
     {
-        StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(2.3f, 3f), 0.1f, strength/10, false, 0f, 0f, 0));
+        StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(2.3f, 3f), 0.1f, strength / 10, false, 0f, 0f, 0));
         Debug.Log("1");
         yield return new WaitForSeconds(0.5f);
         Debug.Log("2");
-        StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(2.3f, 3f), 0.1f, strength/10, false, 0f, 0f, 0));
+        StartCoroutine(ExecuteAttack(new Vector2(1f, 0.5f), new Vector2(2.3f, 3f), 0.1f, strength / 10, false, 0f, 0f, 0));
         yield return new WaitForSeconds(0.6f);
         Debug.Log("3");
-        StartCoroutine(ExecuteAttack(new Vector2(1.5f, 0f), new Vector2(3f, 1f), 0.1f, strength/5, false, 0f, 0f, 0));
+        StartCoroutine(ExecuteAttack(new Vector2(1.5f, 0f), new Vector2(3f, 1f), 0.1f, strength / 5, false, 0f, 0f, 0));
     }
 
     private void Char_2_W(float radius)
@@ -740,7 +745,7 @@ public class PlayerTemporary : MonoBehaviour
 
             float start_x_1 = player_position.x;
             float start_y_1 = player_position.y;
-            StartCoroutine(EnemyAttack_1("attack_up", "real_attack_up", new Vector2(start_x_1, start_y_1), new Vector2(1, 100), new Vector3(0,0,0), new Vector2(start_x_1, start_y_1), new Vector2(1, 100), new Vector3(0, 0, 0), 1f, 1f, 10, 0));
+            StartCoroutine(EnemyAttack_1("attack_up", "real_attack_up", new Vector2(start_x_1, start_y_1), new Vector2(1, 100), new Vector3(0, 0, 0), new Vector2(start_x_1, start_y_1), new Vector2(1, 100), new Vector3(0, 0, 0), 1f, 1f, 10, 0));
             yield return new WaitForSeconds(0.1f);
         }
         yield return new WaitForSeconds(7f);
@@ -784,5 +789,35 @@ public class PlayerTemporary : MonoBehaviour
         yield return new WaitForSeconds(7f);
         Boss_Acting = false;
     }
+
+    private IEnumerator Boss_Pattern_2_1()
+    {
+        int over0_x = Random.Range(0, 35);
+        int over0_y = Random.Range(-3, 35);
+        int over0_z = Random.Range(-180, 0);
+        int random_num = Random.Range(0, 2);
+        float duration = 2f;
+        for (int i = 0; i < 10; i++)
+        {
+            over0_x = Random.Range(0, 35);
+            over0_y = Random.Range(-3, 10);
+            over0_z = Random.Range(-180, 0);
+            random_num = Random.Range(0, 2);
+            if (random_num == 1)
+            {
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(over0_x, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z), new Vector2(over0_x, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z), duration, 0.5f, 100f, 0f));
+            }
+            else
+            {
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(over0_x*-1f, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z*-1f), new Vector2(over0_x*-1f, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z*-1f), duration, 0.5f, 100f, 0f));
+            }
+            duration -= 0.1f;
+            yield return new WaitForSeconds(0.1f);
+        }
+        yield return new WaitForSeconds(2f);
+        GameObject boss = GameObject.Find("Boss_2");
+        boss.transform.position = new Vector2(5, -3);
+        yield return new WaitForSeconds(7f);
+        Boss_Acting = false;
+    }
 }
-    

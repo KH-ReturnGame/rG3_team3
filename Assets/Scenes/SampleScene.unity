@@ -477,7 +477,7 @@ GameObject:
   - component: {fileID: 919111039}
   - component: {fileID: 919111040}
   m_Layer: 7
-  m_Name: Enemy
+  m_Name: Boss_2
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1563,12 +1563,16 @@ PrefabInstance:
       value: 8
       objectReference: {fileID: 0}
     - target: {fileID: 7612149081445634491, guid: 86705c6bd1721cd4db0bfe1d7e5c790f, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7612149081445634491, guid: 86705c6bd1721cd4db0bfe1d7e5c790f, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 100
+      value: 200
       objectReference: {fileID: 0}
     - target: {fileID: 7612149081445634491, guid: 86705c6bd1721cd4db0bfe1d7e5c790f, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0
+      value: 5
       objectReference: {fileID: 0}
     - target: {fileID: 7612149081445634491, guid: 86705c6bd1721cd4db0bfe1d7e5c790f, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1576,7 +1580,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7612149081445634491, guid: 86705c6bd1721cd4db0bfe1d7e5c790f, type: 3}
       propertyPath: m_LocalRotation.w
-      value: 1
+      value: 0.64278764
       objectReference: {fileID: 0}
     - target: {fileID: 7612149081445634491, guid: 86705c6bd1721cd4db0bfe1d7e5c790f, type: 3}
       propertyPath: m_LocalRotation.x
@@ -1588,7 +1592,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7612149081445634491, guid: 86705c6bd1721cd4db0bfe1d7e5c790f, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: 0.76604444
       objectReference: {fileID: 0}
     - target: {fileID: 7612149081445634491, guid: 86705c6bd1721cd4db0bfe1d7e5c790f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -1600,7 +1604,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7612149081445634491, guid: 86705c6bd1721cd4db0bfe1d7e5c790f, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
+      value: 100
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
