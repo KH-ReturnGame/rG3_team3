@@ -53,6 +53,9 @@ public class PlayerTemporary : MonoBehaviour
     public float Boss_Who = 0;
     public float Boss_Pattern = 0;
     public bool Boss_2_1_Acting = false;
+    public bool Boss_3_4_Iced = false;
+    public int Boss_3_4_Iced_Stack = 0;
+    public bool Boss_3_4_Acting = false;
 
 
     private bool isGrounded;
@@ -81,7 +84,7 @@ public class PlayerTemporary : MonoBehaviour
         rb2d = GetComponent<Rigidbody2D>();
         sprdr = GetComponent<SpriteRenderer>();
         animtr = GetComponent<Animator>();
-        Boss_Who = Random.Range(3, 4);
+        Boss_Who = Random.Range(1, 4);
     }
 
     void Update()
@@ -161,7 +164,7 @@ public class PlayerTemporary : MonoBehaviour
         }
 
         //보스코드
-        if (Boss_Acting == false && Boss_HP <= 0)
+        if (Boss_HP <= 0)
         {
             Debug.Log("보스 사망");
         }
@@ -192,7 +195,7 @@ public class PlayerTemporary : MonoBehaviour
             {
                 if (Boss_2_1_Acting == false)
                 {
-                    Boss_Pattern = Random.Range(5, 6);
+                    Boss_Pattern = Random.Range(1, 6);
                     if (Boss_Pattern == 1)
                     {
                         Boss_2_1_Acting = true;
@@ -200,7 +203,7 @@ public class PlayerTemporary : MonoBehaviour
                 }
                 else
                 {
-                    Boss_Pattern = Random.Range(2, 5);
+                    Boss_Pattern = Random.Range(2, 6);
                 }
 
                 if (Boss_Pattern == 1)
@@ -226,7 +229,14 @@ public class PlayerTemporary : MonoBehaviour
             }
             else if (Boss_Who == 3) //보스 3 패턴, 망치
             {
-                Boss_Pattern = Random.Range(3, 4);
+                if(Boss_3_4_Acting == false)
+                {
+                    Boss_Pattern = Random.Range(4, 5);
+                }
+                else
+                {
+                    Boss_Pattern = Random.Range(1, 4);
+                }
                 if(Boss_Pattern == 1)
                 {
                     StartCoroutine(Boss_Pattern_3_1());
@@ -239,12 +249,27 @@ public class PlayerTemporary : MonoBehaviour
                 {
                     StartCoroutine(Boss_Pattern_3_3());
                 }
-                else if(Boss_Pattern == 4)
+                else if(Boss_Pattern == 4 && Boss_3_4_Acting == false)
                 {
-                    StartCoroutine(Boss_Pattern_3_4());
+                    Boss_3_4_Acting = true;
+                    Boss_3_4_Iced = true;
+                    Boss_3_4_Iced_Stack = 0;
+                    StartCoroutine(Boss_Pattern_3_4_1());
+                    StartCoroutine(Boss_Pattern_3_4_2());
                 }
             }
         }
+
+        if(Input.GetKeyDown(KeyCode.Space))
+            {
+                Boss_3_4_Iced_Stack += 1;
+            }
+                if(Boss_3_4_Iced_Stack == 20)
+            {
+                Boss_3_4_Iced = false;
+                Boss_3_4_Acting = false;
+                Boss_3_4_Iced_Stack = 0;
+            }
 
         if(Boss_Pattern == 3 && Boss_Who == 3) //3번보스 3번째 스킬 끌기
         {
@@ -252,11 +277,11 @@ public class PlayerTemporary : MonoBehaviour
             float player_x = player.transform.position.x;
             if(player_x > 0)
             {
-                player.transform.position = new Vector2(player_x - 0.15f, player.transform.position.y);
+                player.transform.position = new Vector2(player_x - 0.025f, player.transform.position.y);
             }
             else if(player_x < 0)
             {
-                player.transform.position = new Vector2(player_x + 0.15f, player.transform.position.y);
+                player.transform.position = new Vector2(player_x + 0.025f, player.transform.position.y);
             }
         }
         //캐릭터코드
@@ -962,6 +987,7 @@ public class PlayerTemporary : MonoBehaviour
 
     private IEnumerator Boss_Pattern_3_1()
     {
+        yield return null;
         GameObject player = GameObject.Find("Player");
         float player_x = player.transform.position.x;
         int random = Random.Range(0, 2);
@@ -1028,16 +1054,34 @@ public class PlayerTemporary : MonoBehaviour
         Boss_Pattern = 10;
         for (int i = 1; i < 10; i++)
         {
-            StartCoroutine(EnemyAttack_1("attack_down", "real_attack_circle", new Vector2(100, -4), new Vector2(100, 5), new Vector3(0, 0, 0), new Vector2(0 + i * 2f, -4), new Vector2(5 -  i / 10 , 5 - i / 10), new Vector3(0, 0, 0), 0.1f, 0.5f, 100f, 0f));
-            StartCoroutine(EnemyAttack_1("attack_down", "real_attack_circle", new Vector2(100, -4), new Vector2(100, 5), new Vector3(0, 0, 0), new Vector2(0 - i * 2f, -4), new Vector2(5 - i / 10, 5 - i / 10), new Vector3(0, 0, 0), 0.1f, 0.5f, 100f, 0f));
+            StartCoroutine(EnemyAttack_1("attack_down", "real_attack_circle", new Vector2(100, -4), new Vector2(100, 5), new Vector3(0, 0, 0), new Vector2(0 + i * 2f, -4), new Vector2(5 -  i / 5 , 5 - i / 5), new Vector3(0, 0, 0), 0.1f, 0.5f, 100f, 0f));
+            StartCoroutine(EnemyAttack_1("attack_down", "real_attack_circle", new Vector2(100, -4), new Vector2(100, 5), new Vector3(0, 0, 0), new Vector2(0 - i * 2f, -4), new Vector2(5 - i / 5, 5 - i / 5), new Vector3(0, 0, 0), 0.1f, 0.5f, 100f, 0f));
             yield return new WaitForSeconds(0.1f);
         }
         yield return new WaitForSeconds(6f);
         Boss_Acting = false;
     }
-    private IEnumerator Boss_Pattern_3_4()
+    private IEnumerator Boss_Pattern_3_4_1()
     {
-        yield return new WaitForSeconds(6f);
+        GameObject player = GameObject.Find("Player");
+        float player_x = player.transform.position.x;
+        float player_y = player.transform.position.y;
+        while(Boss_3_4_Iced == true)
+        {
+            player.transform.position = new Vector2(player_x,player_y);
+            if (Boss_3_4_Iced == false)
+            {
+                yield break;
+            }
+            yield return null;
+        }
+    }
+    private IEnumerator Boss_Pattern_3_4_2()
+    {
+        yield return new WaitForSeconds(2f);
         Boss_Acting = false;
+        yield return new WaitForSeconds(6f);
+        Boss_3_4_Acting = false;
+        Boss_3_4_Iced = false;
     }
 }
