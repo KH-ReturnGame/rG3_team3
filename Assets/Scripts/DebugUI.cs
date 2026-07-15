@@ -17,6 +17,10 @@ public class DebugUI : MonoBehaviour
         debugText.text =
             "Current Scene: " + Manager.Instance.currentScene +
             "\nHP: " + Manager.Instance.health +
-            "\nScore: " + Manager.Instance.score;
+            "\nDifficulty: " + Manager.Instance.difficulty +
+            "\nTimer: " + Manager.Instance.timer +
+            "\nLevel: " + Manager.Instance.level +
+            "\nCurrent Exp: " + Manager.Instance.exp +
+            "\nCurrent MaxExp: " + Manager.Instance.maxExp;
     }
 }

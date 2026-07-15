@@ -6,8 +6,15 @@ public class Manager : MonoBehaviour
     public static Manager Instance;
 
     public float health;
-    public int score;
+    
     public string currentScene;
+    public int difficulty;
+    
+    public float exp;
+    public float maxExp;
+    public int level;
+
+    public float timer;
 
     public GameObject playerPrefab;
     GameObject player;
@@ -29,7 +36,13 @@ public class Manager : MonoBehaviour
     void Start()
     {
         health = 100;
-        score = 0;
+        exp = 0;
+        difficulty = 1;
+        level = 1;
+
+        maxExp = CalculateMaxExp();
+
+        timer = 0;
     }
 
     // Update is called once per frame
@@ -39,22 +52,55 @@ public class Manager : MonoBehaviour
         {
             player = Instantiate(playerPrefab);
             DontDestroyOnLoad(player);
+
+            DamageManager.Instance.SetPlayer(player);
         }
 
         currentScene = SceneManager.GetActiveScene().name;
 
-        if (currentScene == "TestScene_Start" || currentScene == "TestScene_Setting" || currentScene == "TestScene_Menu")
+        if (currentScene == "TestScene_Start" || currentScene == "TestScene_Setting" || currentScene == "TestScene_Menu" || health <= 0)
         {
             player.SetActive(false);
         }
         else
         {
             player.SetActive(true);
+            timer += Time.deltaTime;
+        }
+
+        //LevelUp(exp);
+    }
+
+    public void ChangeScene(string sceneName)
+    {
+        SceneManager.LoadScene(sceneName);
+        player.transform.position = new Vector3(0, 0, 0);
+    }
+
+    public void GetExp(float e)
+    {
+        exp += e;
+        LevelUp();
+    }
+
+    public void LoseExp(float e)
+    {
+        exp -= e;
+        LevelUp();
+    }
+
+    public void LevelUp()
+    {
+        while (exp >= maxExp)
+        {
+            exp -= maxExp;
+            level++;
+            maxExp = CalculateMaxExp();
         }
     }
 
-     public void ChangeScene(string sceneName)
+    public float CalculateMaxExp()
     {
-        SceneManager.LoadScene(sceneName);
+        return (100f * (1f + 0.5f * (level - 1))) * (1f + 0.2f * (difficulty - 1));
     }
 }

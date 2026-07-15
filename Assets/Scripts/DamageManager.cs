@@ -3,6 +3,9 @@ using UnityEngine;
 
 public class DamageManager : MonoBehaviour
 {
+    public static DamageManager Instance;
+
+    GameObject player;
     SpriteRenderer spRend;
 
     float damage;
@@ -11,9 +14,23 @@ public class DamageManager : MonoBehaviour
 
     Coroutine burningCoroutine;
 
+    public void SetPlayer(GameObject p)
+    {
+        player = p;
+        spRend = player.GetComponent<SpriteRenderer>();
+    }
+
     void Awake()
     {
-        spRend = GetComponent<SpriteRenderer>();
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
@@ -25,27 +42,38 @@ public class DamageManager : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Manager.Instance.health <= 0)
-        {
-            gameObject.SetActive(false);
-        }
+        //if (Manager.Instance.health <= 0)
+        //{
+        //    player.SetActive(false);
+        //}
     }
 
     public void GetDamage(float d)
     {
-        damage = d;
-        Manager.Instance.health -= damage;
-        totalDamage += damage;
-        //Debug.Log("damage: " + damage + ", total damage: " + totalDamage + ", current health is " + Manager.Instance.health);
+        if (Manager.Instance.health > 0)
+        {
+            damage = d;
+            Manager.Instance.health -= damage;
+            totalDamage += damage;
+            //Debug.Log("damage: " + damage + ", total damage: " + totalDamage + ", current health is " + Manager.Instance.health);
+        }
+        else
+        {
+            Debug.Log("can't damage");
+        }
     }
 
     public void Recover(float r)
     {
-        if (Manager.Instance.health < 100)
+        if (Manager.Instance.health > 0 && Manager.Instance.health < 100)
         {
             recover = r;
             Manager.Instance.health += recover;
-            Debug.Log(recover + " health recoverd. current health is " + Manager.Instance.health);
+            //Debug.Log(recover + " health recoverd. current health is " + Manager.Instance.health);
+        }
+        else if (Manager.Instance.health <= 0)
+        {
+            Debug.Log("can't recover");
         }
         else
         {
@@ -82,7 +110,7 @@ public class DamageManager : MonoBehaviour
     public void Revive()
     {
         Manager.Instance.health = 100;
-        gameObject.SetActive(true);
+        player.SetActive(true);
         spRend.color = Color.white;
     }
 }
