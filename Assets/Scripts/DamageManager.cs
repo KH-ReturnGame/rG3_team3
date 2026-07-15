@@ -92,6 +92,7 @@ public class DamageManager : MonoBehaviour
             yield return new WaitForSeconds(0.25f);
             spRend.color = Color.white;
             yield return new WaitForSeconds(0.5f);
+            // 시각 효과
         }
     }
 

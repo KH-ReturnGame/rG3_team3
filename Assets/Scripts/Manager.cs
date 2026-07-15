@@ -65,7 +65,7 @@ public class Manager : MonoBehaviour
         else
         {
             player.SetActive(true);
-            timer += Time.deltaTime;
+            timer += Time.deltaTime; // health <= 0일 때도 정지됨
         }
 
         //LevelUp(exp);
