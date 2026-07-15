@@ -18,6 +18,31 @@ public class WeaponConfig
     public SkillCastType xSkillType;
     public SkillCastType cSkillType;
 }
+
+// --- [ 카드 시스템을 위한 데이터 구조들 ] ---
+public enum CardType
+{
+    Skill,          // 1. 스킬
+    Stat,           // 2. 능력치 상승
+    Passive,        // 3. 패시브 능력
+    Weapon          // 4. 무기
+}
+
+[System.Serializable]
+public class CardData
+{
+    public string cardID;           // 시스템 내부 구분을 위한 ID (예: "Skill_1", "Stat_2")
+    public string cardName;         // 화면에 표시될 이름
+    public CardType cardType;       // 카드의 유형
+    public int maxUpgradeLevel = 3; // 스킬, 패시브용 최대 강화 상한 수치
+
+    [Header("무기 설정 (무기 유형일 때만 입력)")]
+    public WeaponConfig weaponConfig;
+
+    [TextArea(2, 3)]
+    public string description;      // 카드 간단 설명
+}
+
 public class PlayerTemporary : MonoBehaviour
 {
     private Rigidbody2D rb2d;
@@ -26,8 +51,6 @@ public class PlayerTemporary : MonoBehaviour
 
     private float movementSpeed = 10;
     private float jumpForce = 25f;
-
-
 
     private float moveInput;
 
@@ -41,7 +64,6 @@ public class PlayerTemporary : MonoBehaviour
 
     private bool isUptilt;
     private bool isDowntilt;
-
 
     public bool isDebounce = false;
 
@@ -67,7 +89,28 @@ public class PlayerTemporary : MonoBehaviour
     private float maxChargeTime = 1.5f; // 최대 차징 시간
     private bool isCharging = false;
     private bool isHolding = false;
-    
+
+    // =========================================================================
+    // [카드 시스템을 위해 추가된 내부 변수들]
+    // =========================================================================
+    [Header("--- 카드 보상 시스템 데이터 ---")]
+    [Tooltip("에디터 인스펙터에서 카드 종류(스킬1~4, 능력치1~4 등)를 자유롭게 빼거나 더할 수 있습니다.")]
+    public List<CardData> rewardCardPool = new List<CardData>();
+
+    [Header("유형별 출현 확률 (합계 100)")]
+    public float skillChance = 35f;
+    public float statChance = 40f;
+    public float passiveChance = 20f;
+    public float weaponChance = 5f; // 매우 희귀하게 설정
+
+    // 플레이어가 획득한 실시간 누적 상태 기록용 (Dictionary는 인스펙터에 안 보이므로 확인용 List 병행 가능)
+    private Dictionary<string, int> acquiredSkills = new Dictionary<string, int>();
+    private Dictionary<string, int> acquiredPassives = new Dictionary<string, int>();
+    private Dictionary<string, int> acquiredStats = new Dictionary<string, int>();
+
+    private List<CardData> currentChoices = new List<CardData>(); // 현재 화면에 뜬 카드 4개
+    private int selectedCount = 0;                               // 현재 스테이지에서 선택한 개수 (최대 2개)
+
     void Awake()
     {
         rb2d = GetComponent<Rigidbody2D>();
@@ -145,7 +188,6 @@ public class PlayerTemporary : MonoBehaviour
 
                 Debug.Log(Combo);
 
-
                 if (!isGrounded && isDowntilt)
                 {
                     StartCoroutine(ExecuteAttack(new Vector2(0f, -2f), new Vector2(8f, 4f), 0.15f, 40f, true));
@@ -208,6 +250,12 @@ public class PlayerTemporary : MonoBehaviour
             HandleSkillInput(KeyCode.C, currentWeapon.cSkillType);
             HandleSkillInput(KeyCode.V, currentWeapon.cSkillType);
         }
+
+        // 테스팅용 코드: 스페이스바 옆의 G 키를 누르면 스테이지 클리어 상황을 시뮬레이션합니다.
+        if (Input.GetKeyDown(KeyCode.G))
+        {
+            OnStageClear();
+        }
     }
 
     void FixedUpdate()
@@ -236,96 +284,87 @@ public class PlayerTemporary : MonoBehaviour
     }
 
     private IEnumerator ExecuteAttack(Vector2 offset, Vector2 size, float duration, float damage, bool isDownSmash)
-{
-    float dir = sprdr.flipX ? -1f : 1f;
-
-    // 공중 공격 시 중력 크기 감소
-    float originalGravity = rb2d.gravityScale; // 원래 중력 값 백업
-    bool isAirAttack = !isGrounded && !isDownSmash; // 공중 공격이면서 아래로 내리찍는 공격이 아닐 때만 적용
-
-    if (isDownSmash)
     {
-        rb2d.linearVelocity = new Vector2(0, -40f); 
-    }
-    else
-    {
-        // 공중 공격일 때 처리
-        if (isAirAttack)
+        float dir = sprdr.flipX ? -1f : 1f;
+        float originalGravity = rb2d.gravityScale; 
+        bool isAirAttack = !isGrounded && !isDownSmash; 
+
+        if (isDownSmash)
         {
-            // 공격 시작 시 Y축 떨어지는 속도를 순간적으로 0 또는 아주 약하게 리셋하여 뚝 떨어지는 느낌 방지
-            rb2d.linearVelocity = new Vector2(0, Mathf.Max(0f, rb2d.linearVelocity.y * 0.2f)); 
-            
-            // 공격하는 동안 중력을 아주 낮춤 (0.15f = 15%)
-            rb2d.gravityScale = originalGravity * 0.15f; 
+            rb2d.linearVelocity = new Vector2(0, -40f); 
         }
         else
         {
-            rb2d.linearVelocity = new Vector2(0, rb2d.linearVelocity.y);
-            rb2d.AddForce(new Vector2(dir * 40f, 0), ForceMode2D.Impulse);
-        }
-    }
-
-    float elapsed = 0f;
-    HashSet<Collider2D> hitHistory = new HashSet<Collider2D>();
-
-    while (elapsed < duration)
-    {
-        // 만약 중력을 낮추는 것만으로 부족하고 아예 낙하 속도의 한계치(Limit)를 두고 싶다면 아래 코드 활성화
-        if (isAirAttack && rb2d.linearVelocity.y < -1f)
-        {
-            // 하강 속도가 일정 수준 이하로 떨어지지 않도록 고정 (천천히 내려옴)
-            rb2d.linearVelocity = new Vector2(rb2d.linearVelocity.x, -1f);
-        }
-
-        float currentDir = sprdr.flipX ? -1f : 1f;
-        Vector2 pos = (Vector2)transform.position + new Vector2(offset.x * currentDir, offset.y);
-
-        Collider2D[] hits = Physics2D.OverlapBoxAll(pos, size, 0f, LayerMask.GetMask("Enemy"));
-
-        foreach (var hit in hits)
-        {
-            if (!hitHistory.Contains(hit))
+            if (isAirAttack)
             {
-                Debug.Log("JUST HIT: " + hit.name);
-                hitHistory.Add(hit);
+                rb2d.linearVelocity = new Vector2(0, Mathf.Max(0f, rb2d.linearVelocity.y * 0.2f)); 
+                rb2d.gravityScale = originalGravity * 0.15f; 
+            }
+            else
+            {
+                rb2d.linearVelocity = new Vector2(0, rb2d.linearVelocity.y);
+                rb2d.AddForce(new Vector2(dir * 40f, 0), ForceMode2D.Impulse);
+            }
+        }
 
-                if (hit.TryGetComponent(out Rigidbody2D enemyRb))
+        float elapsed = 0f;
+        HashSet<Collider2D> hitHistory = new HashSet<Collider2D>();
+
+        while (elapsed < duration)
+        {
+            if (isAirAttack && rb2d.linearVelocity.y < -1f)
+            {
+                rb2d.linearVelocity = new Vector2(rb2d.linearVelocity.x, -1f);
+            }
+
+            float currentDir = sprdr.flipX ? -1f : 1f;
+            Vector2 pos = (Vector2)transform.position + new Vector2(offset.x * currentDir, offset.y);
+
+            Collider2D[] hits = Physics2D.OverlapBoxAll(pos, size, 0f, LayerMask.GetMask("Enemy"));
+
+            foreach (var hit in hits)
+            {
+                if (!hitHistory.Contains(hit))
                 {
-                    if (isDownSmash)
+                    Debug.Log("JUST HIT: " + hit.name);
+                    hitHistory.Add(hit);
+
+                    if (hit.TryGetComponent(out Rigidbody2D enemyRb))
                     {
-                        enemyRb.linearVelocity = Vector2.zero;
-                        enemyRb.AddForce(Vector2.down * 140f, ForceMode2D.Impulse);
-                        Debug.Log("DOWN SMASH!");
-                    }
-                    else if (isUptilt)
-                    {
-                        enemyRb.linearVelocity = Vector2.zero;
-                        enemyRb.AddForce(Vector2.up * 25f, ForceMode2D.Impulse);
-                    }
-                    else
-                    {
-                        enemyRb.AddForce(new Vector2(dir * 10f, 0), ForceMode2D.Impulse);
+                        if (isDownSmash)
+                        {
+                            enemyRb.linearVelocity = Vector2.zero;
+                            enemyRb.AddForce(Vector2.down * 140f, ForceMode2D.Impulse);
+                            Debug.Log("DOWN SMASH!");
+                        }
+                        else if (isUptilt)
+                        {
+                            enemyRb.linearVelocity = Vector2.zero;
+                            enemyRb.AddForce(Vector2.up * 25f, ForceMode2D.Impulse);
+                        }
+                        else
+                        {
+                            enemyRb.AddForce(new Vector2(dir * 10f, 0), ForceMode2D.Impulse);
+                        }
                     }
                 }
             }
+            elapsed += Time.deltaTime;
+            yield return null;
         }
-        elapsed += Time.deltaTime;
-        yield return null;
-    }
 
-    // 공격이 끝나면 원래 중력으로 복원
-    if (isAirAttack)
-    {
-        rb2d.gravityScale = originalGravity;
+        if (isAirAttack)
+        {
+            rb2d.gravityScale = originalGravity;
+        }
     }
-}
 
     private IEnumerator PerformDash()
     {
         isDebounce = true;
         
-        float x = Input.GetAxisRaw("Horizontal"); // A(-1), D(1)
-        float y = Input.GetAxisRaw("Vertical");   // S(-1), W(1)
+        float x = Input.GetAxisRaw("Horizontal"); 
+        float y = Input.GetAxisRaw("Vertical");   
         
         if (Input.GetKey(KeyCode.D) && Input.GetKey(KeyCode.Space))
         {
@@ -342,7 +381,7 @@ public class PlayerTemporary : MonoBehaviour
         
         rb2d.linearVelocity = dashDir * dashForce;
         
-        AddDataToList("DashCD", Cooldownlist, 2f);
+        AddDataToList("DashCD", Cooldownlist, dashCooldown); // 가변 dashCooldown 변수로 연동
         
         yield return new WaitForSeconds(0.2f);
 
@@ -356,11 +395,11 @@ public class PlayerTemporary : MonoBehaviour
         float dir = sprdr.flipX ? -1f : 1f;
         Gizmos.DrawWireCube(transform.position + new Vector3(2f * dir, 0.5f, 0), new Vector3(9f, 6f, 1f));
     }
+
     private void HandleSkillInput(KeyCode key, SkillCastType castType)
     {
         if (castType == SkillCastType.None || Cooldownlist.Contains(key.ToString() + "CD")) return;
 
-        // 1. 다이렉트
         if (Input.GetKeyDown(key) && !isDebounce && !isStun)
         {
             switch (castType)
@@ -380,13 +419,11 @@ public class PlayerTemporary : MonoBehaviour
             }
         }
 
-        // 2. 키를 누르고 있는 중
         if (Input.GetKey(key) && castType == SkillCastType.Charging && isCharging)
         {
             chargeTimer += Time.deltaTime;
         }
 
-        // 3. 키를 뗀 순간
         if (Input.GetKeyUp(key))
         {
             switch (castType)
@@ -408,43 +445,32 @@ public class PlayerTemporary : MonoBehaviour
         }
     }
 
-    // 다이렉트 시전
     private void ExecuteDirectSkill(KeyCode inputKey)
     {
         isDebounce = true;
         Debug.Log($"[다이렉트] {inputKey} 스킬 발동");
-        
-        // 기본 범위 공격 실행 (오프셋, 크기, 지속시간, 데미지, 다운스매시여부)
         StartCoroutine(ExecuteAttack(new Vector2(2f, 0.5f), new Vector2(9f, 6f), 0.15f, 30f, false));
-
         AddDataToList(inputKey.ToString() + "CD", Cooldownlist, 3f);
         StartCoroutine(ResetDebounce(0.3f));
     }
 
-    // 차징 완료 후 시전 (시간 비례 데미지 반영)
     private void ExecuteChargingSkill(KeyCode inputKey, float duration)
     {
         isDebounce = true;
-
-        // 1. 차징 비율 계산 (0.0 ~ 1.0 사이로 제한)
         float chargeRatio = Mathf.Clamp01(duration / maxChargeTime);
 
-        // 2. 시간에 비례한 데미지 계산
         float minDamage = 20f;
         float maxDamage = 80f;
         float finalDamage = minDamage + (maxDamage - minDamage) * chargeRatio;
 
-        // 3. 차징 정도에 따른 이펙트 및 판정 차별화
         if (chargeRatio >= 1.0f)
         {
-            Debug.Log($"[풀차징] {inputKey} 스킬 발동, 데미지: {finalDamage:F1} (최대 데미지)");
-            // 풀차징 시에는 공격 범위(size)를 더 크게 설정 (예: 14f, 8f)
+            Debug.Log($"[풀차징] {inputKey} 스킬 발동, 데미지: {finalDamage:F1}");
             StartCoroutine(ExecuteAttack(new Vector2(3f, 0.5f), new Vector2(14f, 8f), 0.3f, finalDamage, false));
         }
         else
         {
-            Debug.Log($"[차징 미달] {inputKey} 스킬 발동, 차징시간: {duration:F1}초, 데미지: {finalDamage:F1}");
-            // 일반 차징 범위
+            Debug.Log($"[차징 미달] {inputKey} 스킬 발동, 데미지: {finalDamage:F1}");
             StartCoroutine(ExecuteAttack(new Vector2(2f, 0.5f), new Vector2(9f, 6f), 0.15f, finalDamage, false));
         }
 
@@ -452,40 +478,187 @@ public class PlayerTemporary : MonoBehaviour
         StartCoroutine(ResetDebounce(0.4f));
     }
 
-    // 홀딩(누르는 중) 시전 로직
     private IEnumerator ExecuteHoldingSkill(KeyCode inputKey)
     {
         isDebounce = true;
         Debug.Log($"[홀딩 시작] {inputKey} 스킬");
 
         float holdingTimer = 0f;
-        float maxHoldingTime = 8.0f; // 홀딩 최대 제한 시간
-        float damagePerTick = 10f;   // 틱당 데미지
+        float maxHoldingTime = 8.0f;
+        float damagePerTick = 10f;
 
-        // 키를 누르고 있고, 스턴이 아니며, 최대 제한 시간을 넘지 않을 때만 반복
         while (isHolding && !isStun && holdingTimer < maxHoldingTime)
         {
-            Debug.Log($"공격 중, 현재 유지 시간: {holdingTimer:F1}초");
-            
-            // 0.2초마다 주변 적에게 10의 데미지를 주는 짧은 공격 판정 생성
             StartCoroutine(ExecuteAttack(new Vector2(2f, 0.5f), new Vector2(8f, 5f), 0.05f, damagePerTick, false));
-
-            yield return new WaitForSeconds(0.2f); // 틱 간격
+            yield return new WaitForSeconds(0.2f);
             holdingTimer += 0.2f;
         }
 
-        // 제한 시간을 초과해서 탈출한 경우를 위해 상태 강제 해제
         if (holdingTimer >= maxHoldingTime)
         {
-            Debug.Log($"[최대 시간 초과] {inputKey} 스킬 종료");
-            isHolding = false; // Update문과의 동기화를 위해 변수 꺼줌
-        }
-        else
-        {
-            Debug.Log($"[홀딩 종료] {inputKey} 스킬 종료");
+            isHolding = false;
         }
 
         AddDataToList(inputKey.ToString() + "CD", Cooldownlist, 5f);
         isDebounce = false;
+    }
+    
+    // [카드 시스템 핵심 구현 함수군]
+    public void OnStageClear()
+    {
+        Debug.Log("<color=yellow>스테이지의 모든 적 처치 완료! 보상 카드 4개를 출력합니다.</color>");
+        selectedCount = 0;
+        currentChoices.Clear();
+
+        // 1. 가중치 확률 기반으로 랜덤 카드 4개 뽑기
+        for (int i = 0; i < 4; i++)
+        {
+            CardData rolledCard = GetRandomCardByWeight();
+            if (rolledCard != null) currentChoices.Add(rolledCard);
+        }
+
+        // 2. 화면 콘솔 및 UI 시뮬레이션 출력
+        DisplayChoicesUI();
+    }
+
+    // 설정된 확률 가중치 기반 랜덤 카드 추출 함수
+    private CardData GetRandomCardByWeight()
+    {
+        if (rewardCardPool.Count == 0) return null;
+
+        float totalValue = Random.Range(0f, 100f);
+        CardType selectedType;
+
+        if (totalValue < weaponChance)
+            selectedType = CardType.Weapon;
+        else if (totalValue < weaponChance + passiveChance)
+            selectedType = CardType.Passive;
+        else if (totalValue < weaponChance + passiveChance + skillChance)
+            selectedType = CardType.Skill;
+        else
+            selectedType = CardType.Stat;
+
+        // 인펙터 리스트에서 해당 타입의 카드를 골라냄
+        List<CardData> matchedCards = rewardCardPool.FindAll(c => c.cardType == selectedType);
+
+        // 혹시 에디터에 해당 타입 카드가 아예 등록되지 않았다면 예외 처리로 풀 전체에서 랜덤 추출
+        if (matchedCards.Count == 0)
+        {
+            return rewardCardPool[Random.Range(0, rewardCardPool.Count)];
+        }
+
+        return matchedCards[Random.Range(0, matchedCards.Count)];
+    }
+
+    // 임시 UI 텍스트 출력 로직
+    private void DisplayChoicesUI()
+    {
+        Debug.Log("------ [ 보상 선택: 아래 4개 중 2개를 고르세요 ] ------");
+        for (int i = 0; i < currentChoices.Count; i++)
+        {
+            CardData card = currentChoices[i];
+            Debug.Log($"[버튼 인덱스: {i}] 유형: {card.cardType} | 이름: {card.cardName} | 설명: {card.description}");
+        }
+        Debug.Log("선택하려면 컴포넌트나 UI 버튼을 통해 'SelectCardByIndex(인덱스)' 함수를 호출하세요.");
+    }
+
+    /// <summary>
+    /// UI 카드 버튼 클릭 시 연결될 이벤트용 함수 (인덱스: 0 ~ 3)
+    /// </summary>
+    public void SelectCardByIndex(int choiceIndex)
+    {
+        if (selectedCount >= 2)
+        {
+            Debug.LogWarning("이미 이번 스테이지에서 2개의 카드를 모두 선택했습니다.");
+            return;
+        }
+
+        if (choiceIndex < 0 || choiceIndex >= currentChoices.Count) return;
+
+        CardData chosenCard = currentChoices[choiceIndex];
+        ApplyCardEffect(chosenCard);
+
+        selectedCount++;
+        Debug.Log($"카드가 선택되었습니다 ({selectedCount} / 2)");
+
+        if (selectedCount >= 2)
+        {
+            Debug.Log("<color=cyan>선택 완료! 다음 스테이지로 진입할 수 있습니다.</color>");
+            // 필요 시 이곳에 다음 스테이지 맵 이동 로직 배치
+        }
+    }
+
+    // 선택된 카드의 효과 처리 로직 (중복 조건 계산 포함)
+    private void ApplyCardEffect(CardData card)
+    {
+        switch (card.cardType)
+        {
+            case CardType.Weapon:
+                // 중복 체크: 이미 무기 이름이 리스트에 있다면 무기 유지 (동작 없음), 없으면 추가
+                bool exists = myWeapons.Exists(w => w.weaponName == card.weaponConfig.weaponName);
+                if (exists)
+                {
+                    Debug.Log($"이미 장착 중인 무기 [{card.weaponConfig.weaponName}] 입니다. 무기가 유지됩니다.");
+                }
+                else
+                {
+                    myWeapons.Add(card.weaponConfig);
+                    currentWeaponIndex = myWeapons.Count - 1; // 획득 즉시 새로 장착
+                    Debug.Log($"새로운 무기를 획득하여 장착했습니다: {card.weaponConfig.weaponName}");
+                }
+                break;
+
+            case CardType.Stat:
+                // 제약 조건 없는 중복 중첩(스택) 처리
+                if (!acquiredStats.ContainsKey(card.cardID)) acquiredStats[card.cardID] = 0;
+                acquiredStats[card.cardID]++;
+                
+                Debug.Log($"능력치 상승 처리됨 -> ID: {card.cardID} (누적 스택: {acquiredStats[card.cardID]})");
+
+                // 플레이어 기존 변수에 실시간 연동 예시
+                if (card.cardID == "Stat_1") // 예: 이동 속도 카드
+                {
+                    movementSpeed += 1.5f;
+                    Debug.Log($"[스탯 반영] 플레이어 이동 속도가 {movementSpeed}로 증가했습니다.");
+                }
+                else if (card.cardID == "Stat_2") // 예: 대쉬 쿨다운 감소 카드
+                {
+                    dashCooldown = Mathf.Max(0.4f, dashCooldown - 0.2f);
+                    Debug.Log($"[스탯 반영] 대쉬 쿨타임이 {dashCooldown}초로 단축되었습니다.");
+                }
+                break;
+
+            case CardType.Skill:
+                // 중복 획득 시 '강화' 성격 (한도 설정 적용)
+                HandleUpgradableReward(card, acquiredSkills, "스킬");
+                break;
+
+            case CardType.Passive:
+                // 중복 획득 시 '강화' 성격 (한도 설정 적용)
+                HandleUpgradableReward(card, acquiredPassives, "패시브");
+                break;
+        }
+    }
+
+    // 스킬 및 패시브 공용 강화 한도 체크 로직
+    private void HandleUpgradableReward(CardData card, Dictionary<string, int> registry, string typeLabel)
+    {
+        if (!registry.ContainsKey(card.cardID))
+        {
+            registry[card.cardID] = 1;
+            Debug.Log($"새로운 {typeLabel} 획득: {card.cardName} (최초 1레벨)");
+        }
+        else
+        {
+            if (registry[card.cardID] < card.maxUpgradeLevel)
+            {
+                registry[card.cardID]++;
+                Debug.Log($"{typeLabel} 강화 완료: {card.cardName} (현재 {registry[card.cardID]}레벨)");
+            }
+            else
+            {
+                Debug.Log($"{typeLabel} [{card.cardName}]은 이미 마스터 단계({card.maxUpgradeLevel}레벨)입니다. 강화 한도 초과.");
+            }
+        }
     }
 }
