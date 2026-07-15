@@ -7,6 +7,8 @@ public class Player : MonoBehaviour
     [SerializeField]  private Animator animtr;
     [SerializeField]  private SpriteRenderer spdr;
 
+
+
     Transform spriteRenderOBJ;
 
     // input Relavant 
@@ -33,10 +35,13 @@ public class Player : MonoBehaviour
     {
         spriteRenderOBJ = transform.Find("_SpriteRenderer");
 
+
         body2d = GetComponent<Rigidbody2D>();
         // IN SPRITE RENDERER
         spdr = spriteRenderOBJ.GetComponent<SpriteRenderer>();
         animtr = spriteRenderOBJ.GetComponent<Animator>();
+
+    
 
     }
 
@@ -55,9 +60,13 @@ public class Player : MonoBehaviour
         keyInputdetection();
 
         if (xInput != 0)
+        {     
             animtr.SetBool("isWalking", true);
+        }
         else
+        {
             animtr.SetBool("isWalking", false);
+        }
 
 
 
@@ -163,9 +172,6 @@ public class Player : MonoBehaviour
         body2d.AddForce(new Vector2(dir * 80f, 0), ForceMode2D.Impulse);
 
 
-
-        // 대쉬 지속 시간 (원하는 만큼 조절)
-        yield return new WaitForSeconds(0.075f);
 
 //
     }
