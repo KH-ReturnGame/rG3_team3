@@ -1987,6 +1987,7 @@ MonoBehaviour:
   Boss_4_Acting: 0
   Boss_4_duration: 0.5
   stop: 0
+  hurting: 0
   groundCheck: {fileID: 1129845425}
   checkRadius: 3
   look: 0
@@ -3297,11 +3298,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7612149081445634491, guid: 86705c6bd1721cd4db0bfe1d7e5c790f, type: 3}
       propertyPath: m_LocalScale.x
-      value: 100
+      value: 38
       objectReference: {fileID: 0}
     - target: {fileID: 7612149081445634491, guid: 86705c6bd1721cd4db0bfe1d7e5c790f, type: 3}
       propertyPath: m_LocalScale.y
-      value: 4
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 7612149081445634491, guid: 86705c6bd1721cd4db0bfe1d7e5c790f, type: 3}
       propertyPath: m_LocalScale.z

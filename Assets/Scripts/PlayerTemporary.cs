@@ -68,6 +68,7 @@ public class PlayerTemporary : MonoBehaviour
     private Slider bossHPBar;
 
     public bool stop = false;
+    public bool hurting = false;
 
 
     private bool isGrounded;
@@ -321,7 +322,7 @@ public class PlayerTemporary : MonoBehaviour
             }
             else if (Boss_Who == 5)
             {
-                Boss_Pattern = Random.Range(1,3);
+                Boss_Pattern = Random.Range(1,4);
                 if(Boss_Pattern == 1)
                 {
                     StartCoroutine(Boss_Pattern_5_1());
@@ -329,6 +330,10 @@ public class PlayerTemporary : MonoBehaviour
                 else if (Boss_Pattern == 2)
                 {
                     StartCoroutine(Boss_Pattern_5_2());
+                }
+                else if (Boss_Pattern == 3)
+                {
+                    StartCoroutine(Boss_Pattern_5_3());
                 }
             }
         }
@@ -812,10 +817,11 @@ public class PlayerTemporary : MonoBehaviour
 
             foreach (var hit in hits)
             {
-                if (hit.CompareTag("Player") || hit.name == "Player")
+                if (hit.CompareTag("Player") || hit.name == "Player" && hurting == false)
                 {
                     Debug.Log("Player hit by Laser (" + type + ") for " + Damage + " damage.");
                     Player_HP -= Damage;
+                    hurting = true;
                     break;
                 }
             }
@@ -925,7 +931,7 @@ public class PlayerTemporary : MonoBehaviour
         Collider2D hitenemy = Physics2D.OverlapCircle(finalMousePos, radius, realEnemyLayerMask);
         if (hitenemy != null)
         {
-            rb2d.AddForce(new Vector2(0f, 150f), ForceMode2D.Impulse);
+            rb2d.AddForce(new Vector2(0f, -150f), ForceMode2D.Impulse);
             yield return new WaitForSeconds(0.1f);
             transform.position = hitenemy.transform.position + Vector3.up * 100f;
             rb2d.AddForce(new Vector2(0f, -30f), ForceMode2D.Impulse);
@@ -1018,6 +1024,7 @@ public class PlayerTemporary : MonoBehaviour
         GameObject boss_5 = GameObject.Find("Boss_5");
         Boss_Who += 1;
         Player_HP = 100f;
+        hurting = false;
         Boss_HP = 1000f;
         Boss_Acting = false;
         stop = false;
@@ -1080,6 +1087,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
 
     private IEnumerator Boss_Pattern_1_2()
@@ -1109,6 +1117,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
 
     private IEnumerator Boss_Pattern_1_3()
@@ -1140,6 +1149,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
     private IEnumerator Boss_Pattern_1_4()
     {
@@ -1163,6 +1173,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
 
     private IEnumerator Boss_Pattern_2_2()
@@ -1203,6 +1214,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
 
     private IEnumerator Boss_Pattern_2_1()
@@ -1228,6 +1240,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_2_1_Acting = false;
+        hurting = false;
     }
 
     private IEnumerator Boss_Pattern_2_3()
@@ -1258,6 +1271,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
 
     private IEnumerator Boss_Pattern_2_4()
@@ -1281,6 +1295,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
 
     private IEnumerator Boss_Pattern_2_5()
@@ -1314,6 +1329,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
 
     private IEnumerator Boss_Pattern_3_1()
@@ -1355,6 +1371,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
 
     private IEnumerator Boss_Pattern_3_2()
@@ -1387,6 +1404,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
 
     private IEnumerator Boss_Pattern_3_3()
@@ -1413,6 +1431,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
     private IEnumerator Boss_Pattern_3_4_1()
     {
@@ -1473,6 +1492,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
 
     private IEnumerator Boss_Pattern_4_2()
@@ -1504,6 +1524,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
 
     private IEnumerator Boss_Pattern_4_3()
@@ -1543,6 +1564,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
 
     private IEnumerator Boss_Pattern_4_4()
@@ -1572,6 +1594,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
 
     private IEnumerator Boss_Pattern_5_1()
@@ -1611,6 +1634,7 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
     }
 
     private IEnumerator Boss_Pattern_5_2()
@@ -1667,5 +1691,22 @@ public class PlayerTemporary : MonoBehaviour
             yield break;
         }
         Boss_Acting = false;
+        hurting = false;
+    }
+
+    private IEnumerator Boss_Pattern_5_3()
+    {
+        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, 0), new Vector2(38, 100), new Vector3(0, 0, 0), new Vector2(0, 0), new Vector2(38, 100), new Vector3(0, 0, 0), 3f, 5f, 1000f, 0f));
+        if(Boss_HP <= 0)
+        {
+            yield break;
+        }
+        yield return new WaitForSeconds(13f);
+        if(Boss_HP <= 0)
+        {
+            yield break;
+        }
+        Boss_Acting = false;
+        hurting = false;
     }
 }
