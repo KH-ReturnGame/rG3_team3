@@ -7,8 +7,6 @@ public class Player : MonoBehaviour
     [SerializeField]  private Animator animtr;
     [SerializeField]  private SpriteRenderer spdr;
 
-
-
     Transform spriteRenderOBJ;
 
     // input Relavant 
@@ -28,6 +26,28 @@ public class Player : MonoBehaviour
     public float moveSpeed = 5f;
     public float jumpHeight = 30f;
 
+    // combo 
+
+
+    public int currentComboStack = 0;
+    private float lastComboChangeTime;
+    private float comboStackResetLimit = 1f;
+    private int maxComboStack = 5;
+
+    //
+
+    private float attackCooldown = 0.45f;
+
+    //
+
+    [Header("상태리스트")]
+    public List<string> Stunlist = new List<string>();
+    public List<string> FrameList = new List<string>();
+
+    [Header("내부상태리스트")]
+    public List<string> Cooldownlist = new List<string>();
+
+
 
 
 
@@ -36,13 +56,13 @@ public class Player : MonoBehaviour
         spriteRenderOBJ = transform.Find("_SpriteRenderer");
 
 
+
         body2d = GetComponent<Rigidbody2D>();
         // IN SPRITE RENDERER
         spdr = spriteRenderOBJ.GetComponent<SpriteRenderer>();
         animtr = spriteRenderOBJ.GetComponent<Animator>();
 
-    
-
+  
     }
 
     void Update()
@@ -52,6 +72,12 @@ public class Player : MonoBehaviour
 
         // ground Relavant
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, checkRadius, GroundLayer);
+
+
+        // combo
+        animtr.SetInteger("Combo", currentComboStack);
+     
+
 
         // character_updater
         setSprite();
@@ -69,7 +95,11 @@ public class Player : MonoBehaviour
         }
 
 
-
+        if (currentComboStack > 0 && Time.time - lastComboChangeTime >= comboStackResetLimit)
+        {
+            currentComboStack = 0;
+            Debug.Log("시간 초과 (스택 변화 없음): 콤보 스택이 0으로 초기화되었습니다.");
+        }
 
     }
 
@@ -107,6 +137,10 @@ public class Player : MonoBehaviour
         {
              StartCoroutine(Dash());
             
+        }
+        if (Input.GetMouseButtonDown(0) || Input.GetKeyDown(KeyCode.L))
+        {
+            BasicAttack();
         }
 
 
@@ -177,6 +211,85 @@ public class Player : MonoBehaviour
     }
 
 
+    private void BasicAttack()
+    {
+        if (Stunlist.Count > 0) return;
 
- 
+        if (!Cooldownlist.Contains("Attack"))
+        {
+            // 1. 공격을 누른 즉시 콤보 스택 증가 (0 -> 1 -> 2 -> 3 -> 4)
+            currentComboStack++;
+
+            // 최대 콤보(4타)를 넘어가면 다시 1타로 순환 구문
+            if (currentComboStack > 4)
+            {
+                currentComboStack = 1;
+            }
+
+            lastComboChangeTime = Time.time;
+            comboStackResetLimit = 1.5f;
+            Debug.Log("Combo : " + currentComboStack);
+
+            // ★ 핵심: 트리거를 터뜨리기 직전에 애니메이터의 Combo 정수값을 즉시 주입합니다.
+            animtr.SetInteger("Combo", currentComboStack);
+   
+
+            // 2. 공격 트리거 발동 (이제 애니메이터는 변경된 Combo 값을 기준으로 트랜지션을 체크합니다)
+            animtr.SetTrigger("isAttackTrigger");
+          
+
+
+            // 쿨다운 등록
+            Utility.DataManagement.ListManagement.AddData("Attack", Cooldownlist, attackCooldown);
+        }
+    }
+
+
+    /*
+    private void BasicAttack()
+    {
+        if (Stunlist.Count > 0) return;
+        if (!Cooldownlist.Contains("Attack"))
+        {
+
+
+            currentComboStack++;
+            lastComboChangeTime = Time.time;
+            comboStackResetLimit = 1.5f;
+            Debug.Log("Combo : " + currentComboStack);
+
+            Utility.DataManagement.ListManagement.AddData("Attack", Cooldownlist, attackCooldown);
+
+
+            /*
+            if (!plrManager.isGrounded && plrInput.yInput > 0)
+            {
+                Debug.Log("Aerial Cleaves: 체공");
+
+                rb2d.linearVelocity = new Vector2(rb2d.linearVelocity.x, 0f);
+                ExecuteHitbox(1.5f, 10f, 0f);
+            }
+           
+
+            else if (plrManager.isGrounded)
+            {
+                if (weapon.hasForwardMove && plrInput.yInput != 1)
+                {
+                    Debug.Log("Frontdash: 지상 전진 평타");
+                    float facingDirection = sprdr.flipX ? -1f : 1f;
+                    rb2d.AddForce(new Vector2(facingDirection * forwardThrustForce, 0f));
+                }
+                ExecuteHitbox(1.5f, 10f, 0f);
+            }
+           
+       animtr.SetTrigger("isAttackTrigger");
+
+
+     
+
+
+
+        }
+        }
+    */
 }
