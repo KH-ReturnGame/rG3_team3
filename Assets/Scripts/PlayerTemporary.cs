@@ -236,61 +236,89 @@ public class PlayerTemporary : MonoBehaviour
     }
 
     private IEnumerator ExecuteAttack(Vector2 offset, Vector2 size, float duration, float damage, bool isDownSmash)
-    {
-        float dir = sprdr.flipX ? -1f : 1f;
+{
+    float dir = sprdr.flipX ? -1f : 1f;
 
-        if (isDownSmash)
+    // 공중 공격 시 중력 크기 감소
+    float originalGravity = rb2d.gravityScale; // 원래 중력 값 백업
+    bool isAirAttack = !isGrounded && !isDownSmash; // 공중 공격이면서 아래로 내리찍는 공격이 아닐 때만 적용
+
+    if (isDownSmash)
+    {
+        rb2d.linearVelocity = new Vector2(0, -40f); 
+    }
+    else
+    {
+        // 공중 공격일 때 처리
+        if (isAirAttack)
         {
-            rb2d.linearVelocity = new Vector2(0, -40f); 
+            // 공격 시작 시 Y축 떨어지는 속도를 순간적으로 0 또는 아주 약하게 리셋하여 뚝 떨어지는 느낌 방지
+            rb2d.linearVelocity = new Vector2(0, Mathf.Max(0f, rb2d.linearVelocity.y * 0.2f)); 
+            
+            // 공격하는 동안 중력을 아주 낮춤 (0.15f = 15%)
+            rb2d.gravityScale = originalGravity * 0.15f; 
         }
         else
         {
             rb2d.linearVelocity = new Vector2(0, rb2d.linearVelocity.y);
             rb2d.AddForce(new Vector2(dir * 40f, 0), ForceMode2D.Impulse);
         }
+    }
 
-        float elapsed = 0f;
-        HashSet<Collider2D> hitHistory = new HashSet<Collider2D>();
+    float elapsed = 0f;
+    HashSet<Collider2D> hitHistory = new HashSet<Collider2D>();
 
-        while (elapsed < duration)
+    while (elapsed < duration)
+    {
+        // 만약 중력을 낮추는 것만으로 부족하고 아예 낙하 속도의 한계치(Limit)를 두고 싶다면 아래 코드 활성화
+        if (isAirAttack && rb2d.linearVelocity.y < -1f)
         {
-            float currentDir = sprdr.flipX ? -1f : 1f;
-            Vector2 pos = (Vector2)transform.position + new Vector2(offset.x * currentDir, offset.y);
+            // 하강 속도가 일정 수준 이하로 떨어지지 않도록 고정 (천천히 내려옴)
+            rb2d.linearVelocity = new Vector2(rb2d.linearVelocity.x, -1f);
+        }
 
-            Collider2D[] hits = Physics2D.OverlapBoxAll(pos, size, 0f, LayerMask.GetMask("Enemy"));
+        float currentDir = sprdr.flipX ? -1f : 1f;
+        Vector2 pos = (Vector2)transform.position + new Vector2(offset.x * currentDir, offset.y);
 
-            foreach (var hit in hits)
+        Collider2D[] hits = Physics2D.OverlapBoxAll(pos, size, 0f, LayerMask.GetMask("Enemy"));
+
+        foreach (var hit in hits)
+        {
+            if (!hitHistory.Contains(hit))
             {
-                if (!hitHistory.Contains(hit))
-                {
-                    Debug.Log("JUST HIT: " + hit.name);
-                    hitHistory.Add(hit);
+                Debug.Log("JUST HIT: " + hit.name);
+                hitHistory.Add(hit);
 
-                    if (hit.TryGetComponent(out Rigidbody2D enemyRb))
+                if (hit.TryGetComponent(out Rigidbody2D enemyRb))
+                {
+                    if (isDownSmash)
                     {
-                       if (isDownSmash)
-                        {
-        
-                            enemyRb.linearVelocity = Vector2.zero;
-                            enemyRb.AddForce(Vector2.down * 140f, ForceMode2D.Impulse);
-                            Debug.Log("DOWN SMASH!");
-                        }
-                        else if (isUptilt)
-                        {
-                            enemyRb.linearVelocity = Vector2.zero;
-                            enemyRb.AddForce(Vector2.up * 25f, ForceMode2D.Impulse);
-                        }
-                        else
-                        {
-                            enemyRb.AddForce(new Vector2(dir * 10f, 0), ForceMode2D.Impulse);
-                        }
+                        enemyRb.linearVelocity = Vector2.zero;
+                        enemyRb.AddForce(Vector2.down * 140f, ForceMode2D.Impulse);
+                        Debug.Log("DOWN SMASH!");
+                    }
+                    else if (isUptilt)
+                    {
+                        enemyRb.linearVelocity = Vector2.zero;
+                        enemyRb.AddForce(Vector2.up * 25f, ForceMode2D.Impulse);
+                    }
+                    else
+                    {
+                        enemyRb.AddForce(new Vector2(dir * 10f, 0), ForceMode2D.Impulse);
                     }
                 }
             }
-            elapsed += Time.deltaTime;
-            yield return null;
         }
+        elapsed += Time.deltaTime;
+        yield return null;
     }
+
+    // 공격이 끝나면 원래 중력으로 복원
+    if (isAirAttack)
+    {
+        rb2d.gravityScale = originalGravity;
+    }
+}
 
     private IEnumerator PerformDash()
     {
