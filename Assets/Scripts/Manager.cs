@@ -8,6 +8,7 @@ public class Manager : MonoBehaviour
     public float health;
     
     public string currentScene;
+    public string nextScene;
     public int difficulty;
     
     public float exp;
@@ -58,7 +59,7 @@ public class Manager : MonoBehaviour
 
         currentScene = SceneManager.GetActiveScene().name;
 
-        if (currentScene == "TestScene_Start" || currentScene == "TestScene_Setting" || currentScene == "TestScene_Menu" || health <= 0)
+        if (currentScene == "TestScene_Start" || currentScene == "TestScene_Setting" || currentScene == "TestScene_Menu" || currentScene == "TestScene_Loading" || health <= 0)
         {
             player.SetActive(false);
         }
@@ -73,7 +74,17 @@ public class Manager : MonoBehaviour
 
     public void ChangeScene(string sceneName)
     {
-        SceneManager.LoadScene(sceneName);
+        nextScene = sceneName;
+
+        if (nextScene != "TestScene_Menu" && nextScene != "TestScene_Setting" && nextScene != "TestScene_Start")
+        {
+            SceneManager.LoadScene("TestScene_Loading");
+        }
+        else
+        {
+            SceneManager.LoadScene(nextScene);
+        }
+
         player.transform.position = new Vector3(0, 0, 0);
     }
 
