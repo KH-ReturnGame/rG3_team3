@@ -223,8 +223,7 @@ public class Player : MonoBehaviour
             // 최대 콤보(4타)를 넘어가면 다시 1타로 순환 구문
             if (currentComboStack > 4)
             {
-                Utility.DataManagement.ListManagement.AddData("Attack", Cooldownlist, attackCooldown * 1.75f);
-                currentComboStack = 0;
+                currentComboStack = 1;
             }
 
             lastComboChangeTime = Time.time;
