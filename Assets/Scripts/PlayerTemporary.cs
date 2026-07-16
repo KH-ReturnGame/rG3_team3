@@ -819,41 +819,35 @@ public class PlayerTemporary : MonoBehaviour
             if (type == "real_attack_circle")
             {
                 Collider2D[] hits = Physics2D.OverlapCircleAll(position, scale.x);
-                float duration_dummy = 0f;
-                while (duration_dummy <= duration)
+                foreach (var hit in hits)
                 {
-                    foreach (var hit in hits)
+                    if (hit.CompareTag("Player") || hit.name == "Player" && hurting == false)
                     {
-                        if (hit.CompareTag("Player") || hit.name == "Player" && hurting == false)
-                        {
-                            Debug.Log("Player hit by Laser (" + type + ") for " + Damage + " damage.");
-                            Player_HP -= Damage;
-                            hurting = true;
-                        }
+                        Debug.Log("Player hit by Laser (" + type + ") for " + Damage + " damage.");
+                        Player_HP -= Damage;
+                        hurting = true;
+                        break;
                     }
-                    duration_dummy += Time.deltaTime;
                 }
+                yield return new WaitForSeconds(duration);
+                Destroy(enemyAttack);
             }
             else
             {
                 Collider2D[] hits = Physics2D.OverlapBoxAll(position, scale, angle.z);
-                float duration_dummy = 0f;
-                while (duration_dummy <= duration)
+                foreach (var hit in hits)
                 {
-                    foreach (var hit in hits)
+                    if (hit.CompareTag("Player") || hit.name == "Pl ayer" && hurting == false)
                     {
-                        if (hit.CompareTag("Player") || hit.name == "Player" && hurting == false)
-                        {
-                            Debug.Log("Player hit by Laser (" + type + ") for " + Damage + " damage.");
-                            Player_HP -= Damage;
-                            hurting = true;
-                        }
+                        Debug.Log("Player hit by Laser (" + type + ") for " + Damage + " damage.");
+                        Player_HP -= Damage;
+                        hurting = true;
+                        break;
                     }
-                    duration_dummy += Time.deltaTime;
                 }
-                yield return new WaitForSeconds(0.5f);
-                Destroy(enemyAttack);
             }
+                yield return new WaitForSeconds(duration);
+                Destroy(enemyAttack);
         }
     }
 
