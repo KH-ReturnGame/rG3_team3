@@ -1,28 +1,25 @@
 fileFormatVersion: 2
-guid: 6c6bee16c3a52784b884e5ee619b6df5
+guid: 2ec7d60d43529564d93a2ee160a4d7ec
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 634092043804240453
-    second: aaaaa_0
+      213: 8894201953851282084
+    second: Buttons_0
   - first:
-      213: -1744190783469634793
-    second: aaaaa_1
+      213: 7664807735657788756
+    second: Buttons_1
   - first:
-      213: 6212872861762713671
-    second: aaaaa_2
+      213: -5402412272178277761
+    second: Buttons_2
   - first:
-      213: -197044437077473361
-    second: aaaaa_3
+      213: 2013261503205373015
+    second: Buttons_3
   - first:
-      213: 2806068364881532764
-    second: aaaaa_4
+      213: 3760674464881954987
+    second: Buttons_4
   - first:
-      213: -1449125678601215748
-    second: aaaaa_5
-  - first:
-      213: -4080726874213044913
-    second: aaaaa_6
+      213: -7811504096720598664
+    second: Buttons_5
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -118,13 +115,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: aaaaa_0
+      name: Buttons_0
       rect:
         serializedVersion: 2
-        x: 110
-        y: 644
-        width: 271
-        height: 258
+        x: 70
+        y: 1373
+        width: 514
+        height: 223
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -133,20 +130,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 54a6ad1ba5fbcc800800000000000000
-      internalID: 634092043804240453
+      spriteID: 4a214e3bd8d8e6b70800000000000000
+      internalID: 8894201953851282084
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: aaaaa_1
+      name: Buttons_1
       rect:
         serializedVersion: 2
-        x: 610
-        y: 644
-        width: 271
-        height: 258
+        x: 69
+        y: 1125
+        width: 807
+        height: 211
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -155,20 +152,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 71b38ca39b36bc7e0800000000000000
-      internalID: -1744190783469634793
+      spriteID: 4557c83960ede5a60800000000000000
+      internalID: 7664807735657788756
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: aaaaa_2
+      name: Buttons_2
       rect:
         serializedVersion: 2
-        x: 1007
-        y: 533
-        width: 452
-        height: 463
+        x: 72
+        y: 882
+        width: 831
+        height: 196
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -177,20 +174,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 748f70853fe883650800000000000000
-      internalID: 6212872861762713671
+      spriteID: f725a9269a6c605b0800000000000000
+      internalID: -5402412272178277761
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: aaaaa_3
+      name: Buttons_3
       rect:
         serializedVersion: 2
-        x: 9
-        y: 22
-        width: 460
-        height: 474
+        x: 59
+        y: 645
+        width: 598
+        height: 205
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -199,20 +196,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: fa7c703e025f34df0800000000000000
-      internalID: -197044437077473361
+      spriteID: 7547682abaa80fb10800000000000000
+      internalID: 2013261503205373015
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: aaaaa_4
+      name: Buttons_4
       rect:
         serializedVersion: 2
-        x: 509
-        y: 22
-        width: 460
-        height: 474
+        x: 54
+        y: 375
+        width: 629
+        height: 207
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -221,20 +218,20 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: c5799388f4821f620800000000000000
-      internalID: 2806068364881532764
+      spriteID: ba0db2b3089903430800000000000000
+      internalID: 3760674464881954987
       vertices: []
       indices: 
       edges: []
       weights: []
     - serializedVersion: 2
-      name: aaaaa_5
+      name: Buttons_5
       rect:
         serializedVersion: 2
-        x: 1267
-        y: 287
-        width: 193
-        height: 200
+        x: 63
+        y: 100
+        width: 825
+        height: 215
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -243,30 +240,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: cf0e3148fdba3ebe0800000000000000
-      internalID: -1449125678601215748
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: aaaaa_6
-      rect:
-        serializedVersion: 2
-        x: 1029
-        y: 48
-        width: 233
-        height: 237
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: -1
-      bones: []
-      spriteID: f4d242d47885e57c0800000000000000
-      internalID: -4080726874213044913
+      spriteID: 879c5714966f79390800000000000000
+      internalID: -7811504096720598664
       vertices: []
       indices: 
       edges: []
@@ -285,13 +260,12 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      aaaaa_0: 634092043804240453
-      aaaaa_1: -1744190783469634793
-      aaaaa_2: 6212872861762713671
-      aaaaa_3: -197044437077473361
-      aaaaa_4: 2806068364881532764
-      aaaaa_5: -1449125678601215748
-      aaaaa_6: -4080726874213044913
+      Buttons_0: 8894201953851282084
+      Buttons_1: 7664807735657788756
+      Buttons_2: -5402412272178277761
+      Buttons_3: 2013261503205373015
+      Buttons_4: 3760674464881954987
+      Buttons_5: -7811504096720598664
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

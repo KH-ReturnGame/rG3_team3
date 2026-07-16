@@ -34,6 +34,12 @@ public class UIController : MonoBehaviour
         Manager.Instance.ChangeScene(sceneName);
     }
 
+    public void Exit()
+    {
+        Application.Quit();
+    }
+
+
     public void SetDifficulty(int d)
     {
         Manager.Instance.difficulty = d;
