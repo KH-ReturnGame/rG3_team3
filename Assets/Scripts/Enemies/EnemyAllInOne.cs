@@ -2,27 +2,36 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyAI : MonoBehaviour
+public class UltimateBossAI : MonoBehaviour
 {
-    private enum EnemyState { Idle, Chase, Attack }
-    [Header("FSM 상태")]
-    [SerializeField] private EnemyState currentState = EnemyState.Idle;
+    private enum BossState { Idle, Chase, Attack, Dead }
 
+    [Header("FSM 상태")]
+    [SerializeField] private BossState currentState = BossState.Idle;
+
+    [Header("보스 스탯")]
+    public float maxHP = 1000f; // [cite: 1]
+    public float currentHP;
+    public float movementSpeed = 6f;
+    public float detectionRange = 15f;
+    public float attackRange = 3.5f;
+
+    [Header("컴포넌트 및 타겟")]
     private Rigidbody2D rb2d;
     private SpriteRenderer sprdr;
     private Animator animtr;
     private Transform playerTransform;
 
-    [Header("기본 스탯")]
-    public float movementSpeed = 6f;
-    public float detectionRange = 15f;
-    public float attackRange = 3.5f;
-
-    [Header("공격 제어 및 콤보")]
+    [Header("공격 제어 및 쿨타임")]
     public List<string> StunList = new List<string>();
     public List<string> CooldownList = new List<string>();
-    private bool isDebounce = false;
-    private int aiCombo = 0;
+    private bool isActing = false; // 행동 중첩 방지 (기존 Boss_Acting 역할) [cite: 1]
+
+    [Header("프리팹 세팅 (Inspector에서 할당)")]
+    public GameObject warningDownPrefab;   // 경고용 기둥 [cite: 55]
+    public GameObject realDownPrefab;      // 실제 데미지용 기둥 [cite: 75]
+    public GameObject warningCirclePrefab; // 경고용 원형 장판 [cite: 57]
+    public GameObject realCirclePrefab;    // 실제 데미지 원형 장판 [cite: 76]
 
     [Header("땅 밟음 체크")]
     private bool isGrounded;
@@ -35,44 +44,45 @@ public class EnemyAI : MonoBehaviour
         rb2d = GetComponent<Rigidbody2D>();
         sprdr = GetComponent<SpriteRenderer>();
         animtr = GetComponent<Animator>();
-        
-        var player = FindObjectOfType<PlayerTemporary>();
+
+        // 플레이어 찾기 (이름이나 태그 기반으로 수정 가능)
+        GameObject player = GameObject.Find("_PlayerTransform"); // [cite: 62]
         if (player != null) playerTransform = player.transform;
+
+        currentHP = maxHP;
     }
 
     void Update()
     {
+        if (currentState == BossState.Dead) return;
+
         isGrounded = Physics2D.OverlapCircle(groundCheck.position, checkRadius, whatIsGround);
 
-        // 💡 셔터 내리기: 스턴 상태면 대뇌 연산을 올스톱하고 탈출시킵니다.
+        // 스턴 상태면 대뇌 연산 올스톱
         if (StunList.Contains("Stun"))
         {
-            currentState = EnemyState.Idle; 
-            aiCombo = 0;                    
-            isDebounce = false;              
-            return; 
+            currentState = BossState.Idle;
+            isActing = false;
+            return;
         }
 
         if (playerTransform == null) return;
 
-        // 거리 비례 상태 머신 전환
-        float distanceToPlayer = Vector2.Distance(transform.position, playerTransform.position);
+        // 행동 중(isActing)이 아닐 때만 거리 비례 상태 전환
+        if (!isActing)
+        {
+            float distanceToPlayer = Vector2.Distance(transform.position, playerTransform.position);
 
-        if (distanceToPlayer <= attackRange)
-        {
-            currentState = EnemyState.Attack;
-        }
-        else if (distanceToPlayer <= detectionRange)
-        {
-            currentState = EnemyState.Chase;
-        }
-        else
-        {
-            currentState = EnemyState.Idle;
+            if (distanceToPlayer <= attackRange)
+                currentState = BossState.Attack;
+            else if (distanceToPlayer <= detectionRange)
+                currentState = BossState.Chase;
+            else
+                currentState = BossState.Idle;
         }
 
-        // 공격 패턴 트리거 실행
-        if (currentState == EnemyState.Attack && !isDebounce)
+        // 공격 범위에 들어왔고, 공격 쿨타임이 돌고 있지 않다면 패턴 실행
+        if (currentState == BossState.Attack && !isActing)
         {
             DecideAttackPattern();
         }
@@ -80,145 +90,147 @@ public class EnemyAI : MonoBehaviour
 
     void FixedUpdate()
     {
-        // 💡 물리 연산 완전 정지: 스턴 상태일 땐 제자리에 고정하고 중력만 흐르게 합니다.
+        if (currentState == BossState.Dead) return;
+
+        // 스턴 상태 물리 연산 완전 정지
         if (StunList.Contains("Stun"))
         {
             rb2d.linearVelocity = new Vector2(0f, rb2d.linearVelocity.y);
-            if (animtr != null) animtr.SetBool("isWalking", false);
+            if (animtr != null) animtr.SetBool("run", false);
             return;
         }
 
-        if (currentState == EnemyState.Attack || playerTransform == null) return;
+        // 공격 중이거나 플레이어가 없으면 이동 정지
+        if (currentState == BossState.Attack || playerTransform == null || isActing) return;
 
-        if (currentState == EnemyState.Chase)
+        if (currentState == BossState.Chase)
         {
             float direction = playerTransform.position.x > transform.position.x ? 1f : -1f;
             rb2d.linearVelocity = new Vector2(direction * movementSpeed, rb2d.linearVelocity.y);
             sprdr.flipX = direction < 0;
-            if (animtr != null) animtr.SetBool("isWalking", true);
+            if (animtr != null) animtr.SetBool("run", true);
         }
-        else if (currentState == EnemyState.Idle)
+        else if (currentState == BossState.Idle)
         {
             rb2d.linearVelocity = new Vector2(0f, rb2d.linearVelocity.y);
-            if (animtr != null) animtr.SetBool("isWalking", false);
+            if (animtr != null) animtr.SetBool("run", false);
         }
     }
 
+    public void TakeDamage(float damage)
+    {
+        if (currentState == BossState.Dead) return;
+
+        currentHP -= damage;
+        Debug.Log("보스 피격! 남은 체력: " + currentHP);
+
+        if (currentHP <= 0)
+        {
+            Die();
+        }
+    }
+
+    private void Die()
+    {
+        currentState = BossState.Dead;
+        isActing = true;
+        rb2d.linearVelocity = Vector2.zero;
+        Debug.Log("보스 사망"); // [cite: 7]
+        // 사망 애니메이션 Trigger 호출 등 추가 가능
+    }
+
+    // ===================================================================
+    // 최강 보스 패턴 결정 로직 (스파게티 코드를 FSM에 맞게 압축)
+    // ===================================================================
     private void DecideAttackPattern()
     {
         if (CooldownList.Contains("GlobalAttackCD")) return;
 
-        isDebounce = true;
-        float dir = sprdr.flipX ? -1f : 1f;
+        isActing = true;
+        rb2d.linearVelocity = new Vector2(0f, rb2d.linearVelocity.y);
+        sprdr.flipX = playerTransform.position.x < transform.position.x;
 
-        // 패턴 1: 유저가 공중에 떠 있을 때 어퍼컷으로 요격
-        if (playerTransform.position.y - transform.position.y > 2f)
+        // 패턴 랜덤 돌리기 (예시로 근접 돌진과 마법 장판 2가지를 융합)
+        int randomPattern = Random.Range(1, 3);
+
+        if (randomPattern == 1)
         {
-            StartCoroutine(ExecuteEnemyAttack(new Vector2(1f, 2f), new Vector2(5f, 7f), 0.15f, "UpperCut"));
+            StartCoroutine(MeleeRushPattern());
         }
-        // 패턴 2: AI 자신이 공중에 떴고 아래 유저가 보일 때 메테오 수직강하 내려찍기
-        else if (!isGrounded && playerTransform.position.y < transform.position.y)
-        {
-            StartCoroutine(ExecuteEnemyAttack(new Vector2(0f, -2f), new Vector2(8f, 4f), 0.2f, "DownSmash"));
-        }
-        // 패턴 3: 정면 평지 조우 시 3연타 기본 콤보 몰아치기
         else
         {
-            aiCombo++;
-            if (aiCombo >= 3)
-            {
-                StartCoroutine(ExecuteEnemyAttack(new Vector2(2.5f, 0.5f), new Vector2(10f, 6f), 0.2f, "HeavyFinish"));
-                aiCombo = 0;
-                AddDataToList("GlobalAttackCD", CooldownList, 1.5f); // 막타 적중 후 큰 후딜레이 발생
-            }
-            else
-            {
-                StartCoroutine(ExecuteEnemyAttack(new Vector2(2f, 0.5f), new Vector2(9f, 6f), 0.1f, "LightAttack"));
-            }
+            StartCoroutine(MagicAreaPattern());
         }
     }
 
-    private IEnumerator ExecuteEnemyAttack(Vector2 offset, Vector2 size, float duration, string attackType)
+    // 1번 패턴: 무식하게 플레이어에게 돌진하는 근접 공격 (보스 4 기반)
+    private IEnumerator MeleeRushPattern()
     {
-        float dir = sprdr.flipX ? -1f : 1f;
-        Debug.Log($"AI Attack: {attackType}");
+        if (animtr != null) animtr.SetTrigger("Attack");
 
-        // 기동력 대입
-        if (attackType == "UpperCut")
+        yield return new WaitForSeconds(0.3f); // 선딜레이
+
+        if (!StunList.Contains("Stun"))
         {
-            rb2d.linearVelocity = new Vector2(rb2d.linearVelocity.x, 18f);
-        }
-        else if (attackType == "DownSmash")
-        {
-            rb2d.linearVelocity = new Vector2(0, -35f);
-        }
-        else
-        {
-            rb2d.linearVelocity = new Vector2(0, rb2d.linearVelocity.y);
-            rb2d.AddForce(new Vector2(dir * 25f, 0f), ForceMode2D.Impulse);
-        }
+            float dir = sprdr.flipX ? -1f : 1f;
+            rb2d.AddForce(new Vector2(dir * 25f, 0f), ForceMode2D.Impulse); // 돌진
 
-        float elapsed = 0f;
-        HashSet<Collider2D> hitHistory = new HashSet<Collider2D>();
-
-        while (elapsed < duration)
-        {
-            // 공격 프레임 실행 도중 유저한테 얻어맞아 스턴 상태로 전환되면 공격 루프 폭파
-            if (StunList.Contains("Stun")) yield break; 
-
-            float currentDir = sprdr.flipX ? -1f : 1f;
-            Vector2 pos = (Vector2)transform.position + new Vector2(offset.x * currentDir, offset.y);
-
-            Collider2D[] hits = Physics2D.OverlapBoxAll(pos, size, 0f, LayerMask.GetMask("Player"));
+            // 돌진 타격 판정
+            Vector2 attackPos = (Vector2)transform.position + new Vector2(dir * 2f, 0.5f);
+            Collider2D[] hits = Physics2D.OverlapBoxAll(attackPos, new Vector2(3f, 2f), 0f, LayerMask.GetMask("Player"));
 
             foreach (var hit in hits)
             {
-                if (!hitHistory.Contains(hit))
-                {
-                    hitHistory.Add(hit);
-
-                    if (hit.TryGetComponent(out Rigidbody2D playerRb))
-                    {
-                        playerRb.linearVelocity = Vector2.zero; 
-
-                        if (attackType == "UpperCut")
-                        {
-                            playerRb.AddForce(Vector2.up * 28f, ForceMode2D.Impulse);
-                        }
-                        else if (attackType == "DownSmash")
-                        {
-                            playerRb.AddForce(Vector2.down * 120f, ForceMode2D.Impulse);
-                        }
-                        else if (attackType == "HeavyFinish")
-                        {
-                            playerRb.AddForce(new Vector2(dir * 45f, 10f), ForceMode2D.Impulse);
-                        }
-                        else
-                        {
-                            playerRb.AddForce(new Vector2(dir * 12f, 0f), ForceMode2D.Impulse);
-                        }
-
-                        // 💡 유저 강제 경직(Stun) 부여
-                        if (hit.TryGetComponent(out PlayerTemporary playerScript))
-                        {
-                            playerScript.StartCoroutine(InstantStun(playerScript));
-                        }
-                    }
-                }
+                // 플레이어가 맞았을 때 데미지 처리
+                Debug.Log("돌진 공격 적중!");
             }
-            elapsed += Time.deltaTime;
-            yield return null;
         }
 
-        yield return new WaitForSeconds(0.2f); // 공격 후 빈틈 딜레이
-        isDebounce = false;
+        yield return new WaitForSeconds(0.6f); // 후딜레이
+
+        AddDataToList("GlobalAttackCD", CooldownList, 1.5f);
+        isActing = false;
     }
 
-    private IEnumerator InstantStun(PlayerTemporary player)
+    // 2번 패턴: 플레이어 발밑에 경고 장판 생성 후 폭발 (보스 1, 3 마법 기반)
+    private IEnumerator MagicAreaPattern()
     {
-        player.Stunlist.Add("Stun");
-        yield return new WaitForSeconds(0.4f); 
-        player.Stunlist.Remove("Stun");
+        Vector2 targetPos = playerTransform.position;
+
+        // 1. 경고 프리팹 생성 (스파게티의 attack_down, attack_circle 역할) [cite: 55, 57]
+        GameObject warningObj = null;
+        if (warningCirclePrefab != null)
+        {
+            warningObj = Instantiate(warningCirclePrefab, targetPos, Quaternion.identity);
+            warningObj.transform.localScale = new Vector2(3f, 3f);
+        }
+
+        
+        yield return new WaitForSeconds(1.5f);
+
+        
+        if (warningObj != null) Destroy(warningObj);
+
+        if (!StunList.Contains("Stun") && realCirclePrefab != null)
+        {
+            GameObject realObj = Instantiate(realCirclePrefab, targetPos, Quaternion.identity);
+            realObj.transform.localScale = new Vector2(3f, 3f);
+
+            Collider2D[] hits = Physics2D.OverlapCircleAll(targetPos, 3f);
+            foreach (var hit in hits)
+            {
+                if (hit.CompareTag("Player") || hit.name == "Player")
+                {
+                    Debug.Log("마법 공격 적중! 플레이어 데미지 처리");
+                    // hit.GetComponent<PlayerScript>().TakeDamage(데미지);
+                }
+            }
+
+            Destroy(realObj, 0.5f);
+        }
+
+        AddDataToList("GlobalAttackCD", CooldownList, 2.0f);
+        isActing = false;
     }
 
     private void AddDataToList(string dataName, List<string> dataList, float duration)
