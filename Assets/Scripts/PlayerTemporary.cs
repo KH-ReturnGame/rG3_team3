@@ -299,7 +299,7 @@ public class PlayerTemporary : MonoBehaviour
                     StartCoroutine(Boss_Pattern_3_4_2());
                 }
             }
-            else if (Boss_Who == 4)
+            else if (Boss_Who == 4)  //보스4 주먹
             {
                 Boss_Pattern = Random.Range(1,5);
                 Boss_4_Acting = true;
@@ -320,9 +320,9 @@ public class PlayerTemporary : MonoBehaviour
                     StartCoroutine(Boss_Pattern_4_4());
                 }
             }
-            else if (Boss_Who == 5)
+            else if (Boss_Who == 5) //보스5 키메라
             {
-                Boss_Pattern = Random.Range(1,4);
+                Boss_Pattern = Random.Range(1,5);
                 if(Boss_Pattern == 1)
                 {
                     StartCoroutine(Boss_Pattern_5_1());
@@ -334,6 +334,10 @@ public class PlayerTemporary : MonoBehaviour
                 else if (Boss_Pattern == 3)
                 {
                     StartCoroutine(Boss_Pattern_5_3());
+                }
+                else if (Boss_Pattern == 4)
+                {
+                    StartCoroutine (Boss_Pattern_5_4());
                 }
             }
         }
@@ -706,7 +710,7 @@ public class PlayerTemporary : MonoBehaviour
         StartCoroutine(Real_EnemyAttack_1(type_2, position_2, scale_2, angle_2, duration_2, Damage, Logic));
 
     }
-    private IEnumerator Real_EnemyAttack_1(string type, Vector2 position, Vector2 scale, Vector3 angle, float duratiron, float Damage, float logic)
+    private IEnumerator Real_EnemyAttack_1(string type, Vector2 position, Vector2 scale, Vector3 angle, float duration, float Damage, float logic)
     {
         GameObject targetPrefab = null;
         GameObject player = GameObject.Find("Player");
@@ -812,22 +816,44 @@ public class PlayerTemporary : MonoBehaviour
                 }
                 Destroy(enemyAttack);
             }
-
-            Collider2D[] hits = Physics2D.OverlapBoxAll(position, scale, angle.z);
-
-            foreach (var hit in hits)
+            if (type == "real_attack_circle")
             {
-                if (hit.CompareTag("Player") || hit.name == "Player" && hurting == false)
+                Collider2D[] hits = Physics2D.OverlapCircleAll(position, scale.x);
+                float duration_dummy = 0f;
+                while (duration_dummy <= duration)
                 {
-                    Debug.Log("Player hit by Laser (" + type + ") for " + Damage + " damage.");
-                    Player_HP -= Damage;
-                    hurting = true;
-                    break;
+                    foreach (var hit in hits)
+                    {
+                        if (hit.CompareTag("Player") || hit.name == "Player" && hurting == false)
+                        {
+                            Debug.Log("Player hit by Laser (" + type + ") for " + Damage + " damage.");
+                            Player_HP -= Damage;
+                            hurting = true;
+                        }
+                    }
+                    duration_dummy += Time.deltaTime;
                 }
             }
-
-            yield return new WaitForSeconds(duratiron);
-            Destroy(enemyAttack);
+            else
+            {
+                Collider2D[] hits = Physics2D.OverlapBoxAll(position, scale, angle.z);
+                float duration_dummy = 0f;
+                while (duration_dummy <= duration)
+                {
+                    foreach (var hit in hits)
+                    {
+                        if (hit.CompareTag("Player") || hit.name == "Player" && hurting == false)
+                        {
+                            Debug.Log("Player hit by Laser (" + type + ") for " + Damage + " damage.");
+                            Player_HP -= Damage;
+                            hurting = true;
+                        }
+                    }
+                    duration_dummy += Time.deltaTime;
+                }
+                yield return new WaitForSeconds(0.5f);
+                Destroy(enemyAttack);
+            }
         }
     }
 
@@ -1195,11 +1221,11 @@ public class PlayerTemporary : MonoBehaviour
             }
             if (random_num == 1)
             {
-                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(over0_x, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z), new Vector2(over0_x, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z), duration, 0.5f, 10f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(over0_x, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z), new Vector2(over0_x, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z), duration, 0.5f, 5f, 0f));
             }
             else
             {
-                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(over0_x * -1f, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z * -1f), new Vector2(over0_x * -1f, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z * -1f), duration, 0.5f, 10f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(over0_x * -1f, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z * -1f), new Vector2(over0_x * -1f, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z * -1f), duration, 0.5f, 5f, 0f));
             }
             duration -= 0.1f;
             yield return new WaitForSeconds(0.1f);
@@ -1255,8 +1281,8 @@ public class PlayerTemporary : MonoBehaviour
 
             for (int j = 0; j < 4; j++)
             {
-                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(player_x, player_y), new Vector2(100, 1), new Vector3(0, 0, angle), new Vector2(player_x, player_y), new Vector2(100, 1), new Vector3(0, 0, angle), 1f, 0.5f, 20f, 0));
-                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(player_x, player_y), new Vector2(100, 1), new Vector3(0, 0, angle * -1f), new Vector2(player_x, player_y), new Vector2(100, 1), new Vector3(0, 0, angle * -1f), 1f, 0.5f, 20f, 0));
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(player_x, player_y), new Vector2(100, 1), new Vector3(0, 0, angle), new Vector2(player_x, player_y), new Vector2(100, 1), new Vector3(0, 0, angle), 1f, 0.5f, 2f, 0));
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(player_x, player_y), new Vector2(100, 1), new Vector3(0, 0, angle * -1f), new Vector2(player_x, player_y), new Vector2(100, 1), new Vector3(0, 0, angle * -1f), 1f, 0.5f, 2f, 0));
                 angle += 6f;
             }
             yield return new WaitForSeconds(1.5f);
@@ -1280,13 +1306,13 @@ public class PlayerTemporary : MonoBehaviour
         float start_y = 0f;
         for (int i = 0; i < 20; i++)
         {
-            StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(start_x, 0), new Vector2(1, 100), new Vector3(0, 0, 0), new Vector2(start_x, 0), new Vector2(1, 100), new Vector3(0, 0, 0), 1f, 0.5f, 30f, 0f));
+            StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(start_x, 0), new Vector2(1, 100), new Vector3(0, 0, 0), new Vector2(start_x, 0), new Vector2(1, 100), new Vector3(0, 0, 0), 1f, 0.5f, 20f, 0f));
             start_x += 4f;
         }
         yield return new WaitForSeconds(1f);
         for (int j = 0; j < 10; j++)
         {
-            StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, start_y), new Vector2(100, 1), new Vector3(0, 0, 0), new Vector2(0, start_y), new Vector2(100, 1), new Vector3(0, 0, 0), 1f, 0.5f, 30f, 0f));
+            StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, start_y), new Vector2(100, 1), new Vector3(0, 0, 0), new Vector2(0, start_y), new Vector2(100, 1), new Vector3(0, 0, 0), 1f, 0.5f, 20f, 0f));
             start_y += 4f;
         }
         yield return new WaitForSeconds(5f);
@@ -1308,13 +1334,13 @@ public class PlayerTemporary : MonoBehaviour
             start_x_2 = -28f;
             for (int j = 0; j < 15; j++)
             {
-                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(start_x_1, 0), new Vector2(1, 100), new Vector3(0, 0, 0), new Vector2(start_x_1, 0), new Vector2(1, 100), new Vector3(0, 0, 0), 1f, 0.5f, 20f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(start_x_1, 0), new Vector2(1, 100), new Vector3(0, 0, 0), new Vector2(start_x_1, 0), new Vector2(1, 100), new Vector3(0, 0, 0), 1f, 0.5f, 10f, 0f));
                 start_x_1 += 4f;
             }
             yield return new WaitForSeconds(1f);
             for (int j = 0; j < 15; j++)
             {
-                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(start_x_2, 0), new Vector2(1, 100), new Vector3(0, 0, 0), new Vector2(start_x_2, 0), new Vector2(1, 100), new Vector3(0, 0, 0), 1f, 0.5f, 20f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(start_x_2, 0), new Vector2(1, 100), new Vector3(0, 0, 0), new Vector2(start_x_2, 0), new Vector2(1, 100), new Vector3(0, 0, 0), 1f, 0.5f, 10f, 0f));
                 start_x_2 += 4f;
             }
             yield return new WaitForSeconds(1f);
@@ -1342,22 +1368,22 @@ public class PlayerTemporary : MonoBehaviour
         if (random == 0)
         {
             boss.transform.position = new Vector2(player_x + 10f, -3);
-            StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(player_x + 10f, -4), new Vector2(10, 10), new Vector3(0, 0, 0), new Vector2(player_x + 10f, -4), new Vector2(10, 10), new Vector3(0, 0, 0), 1f, 0.5f, 20f, 0f));
+            StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(player_x + 10f, -4), new Vector2(10, 10), new Vector3(0, 0, 0), new Vector2(player_x + 10f, -4), new Vector2(10, 10), new Vector3(0, 0, 0), 1f, 0.5f, 10f, 0f));
             yield return new WaitForSeconds(0.9f);
             for (int i = 1; i < 10; i++)
             {
-                StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(player_x + 10f - i * 2f, -4), new Vector2(10 - i / 2, 10 - i / 2), new Vector3(0, 0, 0), new Vector2(player_x + 10f - i * 2f, -4), new Vector2(10 - i / 2, 10 - i / 2), new Vector3(0, 0, 0), 0.2f, 0.5f, 20f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(player_x + 10f - i * 2f, -4), new Vector2(10 - i / 2, 10 - i / 2), new Vector3(0, 0, 0), new Vector2(player_x + 10f - i * 2f, -4), new Vector2(10 - i / 2, 10 - i / 2), new Vector3(0, 0, 0), 0.2f, 0.5f, 4f, 0f));
                 yield return new WaitForSeconds(0.1f);
             }
         }
         else
         {
             boss.transform.position = new Vector2(player_x - 10f, -3);
-            StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(player_x - 10f, -4), new Vector2(10, 10), new Vector3(0, 0, 0), new Vector2(player_x - 10f, -4), new Vector2(10, 10), new Vector3(0, 0, 0), 1f, 0.5f, 20f, 0f));
+            StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(player_x - 10f, -4), new Vector2(10, 10), new Vector3(0, 0, 0), new Vector2(player_x - 10f, -4), new Vector2(10, 10), new Vector3(0, 0, 0), 1f, 0.5f, 10f, 0f));
             yield return new WaitForSeconds(0.9f);
             for (int i = 1; i < 10; i++)
             {
-                StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(player_x - 10f + i * 2f, -4), new Vector2(10 - i / 2, 10 - i / 2), new Vector3(0, 0, 0), new Vector2(player_x - 10f + i * 2f, -4), new Vector2(10 - i / 2, 10 - i / 2), new Vector3(0, 0, 0), 0.2f, 0.5f, 20f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(player_x - 10f + i * 2f, -4), new Vector2(10 - i / 2, 10 - i / 2), new Vector3(0, 0, 0), new Vector2(player_x - 10f + i * 2f, -4), new Vector2(10 - i / 2, 10 - i / 2), new Vector3(0, 0, 0), 0.2f, 0.5f, 4f, 0f));
                 yield return new WaitForSeconds(0.1f);
             }
         }
@@ -1388,8 +1414,8 @@ public class PlayerTemporary : MonoBehaviour
             yield return new WaitForSeconds(2f);
             for (int j = 0; j < 7; j++)
             {
-                StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(player_x + j * 2f, -4), new Vector2(7 - j / 2, 7 - j / 2), new Vector3(0, 0, 0), new Vector2(player_x + j * 2f, -4), new Vector2(7 - j / 2, 7 - j / 2), new Vector3(0, 0, 0), 0.2f, 0.5f, 30f, 0f));
-                StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(player_x - j * 2f, -4), new Vector2(7 - j / 2, 7 - j / 2), new Vector3(0, 0, 0), new Vector2(player_x - j * 2f, -4), new Vector2(7 - j / 2, 7 - j / 2), new Vector3(0, 0, 0), 0.2f, 0.5f, 30f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(player_x + j * 2f, -4), new Vector2(7 - j / 2, 7 - j / 2), new Vector3(0, 0, 0), new Vector2(player_x + j * 2f, -4), new Vector2(7 - j / 2, 7 - j / 2), new Vector3(0, 0, 0), 0.2f, 0.5f, 5f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(player_x - j * 2f, -4), new Vector2(7 - j / 2, 7 - j / 2), new Vector3(0, 0, 0), new Vector2(player_x - j * 2f, -4), new Vector2(7 - j / 2, 7 - j / 2), new Vector3(0, 0, 0), 0.2f, 0.5f, 5f, 0f));
                 yield return new WaitForSeconds(0.1f);
             }
             yield return new WaitForSeconds(2f);
@@ -1412,13 +1438,13 @@ public class PlayerTemporary : MonoBehaviour
         GameObject boss = GameObject.Find("Boss_3");
         GameObject player = GameObject.Find("Player");
         boss.transform.position = new Vector2(0, -3);
-        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_circle", new Vector2(0, -4), new Vector2(40, 5), new Vector3(0, 0, 0), new Vector2(0, -4), new Vector2(5, 5), new Vector3(0, 0, 0), 2f, 0.5f, 20f, 0));
+        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_circle", new Vector2(0, -4), new Vector2(40, 5), new Vector3(0, 0, 0), new Vector2(0, -4), new Vector2(5, 5), new Vector3(0, 0, 0), 2f, 0.5f, 5f, 0));
         yield return new WaitForSeconds(2f);
         Boss_Pattern = 10;
         for (int i = 1; i < 10; i++)
         {
-            StartCoroutine(EnemyAttack_1("attack_down", "real_attack_circle", new Vector2(100, -4), new Vector2(100, 5), new Vector3(0, 0, 0), new Vector2(0 + i * 2f, -4), new Vector2(5 - i / 5, 5 - i / 5), new Vector3(0, 0, 0), 0.1f, 0.5f, 20f, 0f));
-            StartCoroutine(EnemyAttack_1("attack_down", "real_attack_circle", new Vector2(100, -4), new Vector2(100, 5), new Vector3(0, 0, 0), new Vector2(0 - i * 2f, -4), new Vector2(5 - i / 5, 5 - i / 5), new Vector3(0, 0, 0), 0.1f, 0.5f, 20f, 0f));
+            StartCoroutine(EnemyAttack_1("attack_down", "real_attack_circle", new Vector2(100, -4), new Vector2(100, 5), new Vector3(0, 0, 0), new Vector2(0 + i * 2f, -4), new Vector2(5 - i / 5, 5 - i / 5), new Vector3(0, 0, 0), 0.1f, 0.5f, 5f, 0f));
+            StartCoroutine(EnemyAttack_1("attack_down", "real_attack_circle", new Vector2(100, -4), new Vector2(100, 5), new Vector3(0, 0, 0), new Vector2(0 - i * 2f, -4), new Vector2(5 - i / 5, 5 - i / 5), new Vector3(0, 0, 0), 0.1f, 0.5f, 5f, 0f));
             yield return new WaitForSeconds(0.1f);
         }
         if(Boss_HP <= 0)
@@ -1479,10 +1505,10 @@ public class PlayerTemporary : MonoBehaviour
         float player_x = player.transform.position.x;
         float player_y = player.transform.position.y;
         boss.transform.position = new Vector2(player_x + 2f, player_y);
-        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), Boss_4_duration, 0.2f, 20f, 2f));
+        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), Boss_4_duration, 0.2f, 10f, 2f));
         yield return new WaitForSeconds(Boss_4_duration + 0.2f);
         parrying_reset();
-        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), Boss_4_duration, 0.2f, 20f, 2f));
+        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), Boss_4_duration, 0.2f, 10f, 2f));
         yield return new WaitForSeconds(Boss_4_duration + 0.2f);
         Boss_4_Acting = false;
         parrying_reset();
@@ -1504,17 +1530,17 @@ public class PlayerTemporary : MonoBehaviour
         float player_y = player.transform.position.y;
         Rigidbody2D rb_boss = boss.GetComponent<Rigidbody2D>();
         boss.transform.position = new Vector2(player_x - 2f, player_y);
-        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), Boss_4_duration, 0.2f, 20f, 3f));
+        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), Boss_4_duration, 0.2f, 10f, 3f));
         yield return new WaitForSeconds(Boss_4_duration + 0.2f);
         parrying_reset();
         rb_boss.constraints |= RigidbodyConstraints2D.FreezePositionY;
         boss.transform.position = new Vector2(player_x, player_y + 2f);
-        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(player_x, player_y), new Vector2(2, 3), new Vector3(0, 0, 0), new Vector2(player_x, player_y), new Vector2(2, 3), new Vector3(0, 0, 0), Boss_4_duration, 0.2f, 20f, 4f));
+        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(player_x, player_y), new Vector2(2, 3), new Vector3(0, 0, 0), new Vector2(player_x, player_y), new Vector2(2, 3), new Vector3(0, 0, 0), Boss_4_duration, 0.2f, 10f, 4f));
         yield return new WaitForSeconds(Boss_4_duration + 0.2f);
         rb_boss.constraints &= ~RigidbodyConstraints2D.FreezePositionY;
         parrying_reset();
         boss.transform.position = new Vector2(player_x + 2f, player_y);
-        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), Boss_4_duration, 0.2f, 20f, 3f));
+        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), new Vector2(player_x, player_y), new Vector2(3, 2), new Vector3(0, 0, 0), Boss_4_duration, 0.2f, 10f, 3f));
         yield return new WaitForSeconds(Boss_4_duration + 0.2f);
         Boss_4_Acting = false;
         parrying_reset();
@@ -1612,16 +1638,16 @@ public class PlayerTemporary : MonoBehaviour
             random_num = Random.Range(0, 2);
             if (random_num == 1)
             {
-                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(over0_x, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z), new Vector2(over0_x, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z), duration, 0.2f, 20f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(over0_x, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z), new Vector2(over0_x, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z), duration, 0.2f, 10f, 0f));
             }
             else
             {
-                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(over0_x * -1f, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z * -1f), new Vector2(over0_x * -1f, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z * -1f), duration, 0.2f, 20f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(over0_x * -1f, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z * -1f), new Vector2(over0_x * -1f, over0_y), new Vector2(1, 200), new Vector3(0, 0, over0_z * -1f), duration, 0.2f, 10f, 0f));
             }
             duration -= 0.1f;
             over0_x = Random.Range(-20, 20);
             over0_y = Random.Range(-3, 7);
-            StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(over0_x, over0_y), new Vector2(3, 3), new Vector3(0, 0,0), new Vector2(over0_x, over0_y), new Vector2(3, 3), new Vector3(0, 0, over0_z), 0.5f , 0.2f, 20f, 0f));
+            StartCoroutine(EnemyAttack_1("attack_circle", "real_attack_circle", new Vector2(over0_x, over0_y), new Vector2(3, 3), new Vector3(0, 0,0), new Vector2(over0_x, over0_y), new Vector2(3, 3), new Vector3(0, 0, over0_z), 0.5f , 0.2f, 5f, 0f));
             yield return new WaitForSeconds(0.1f);
         }
         if(Boss_HP <= 0)
@@ -1649,31 +1675,31 @@ public class PlayerTemporary : MonoBehaviour
             random_num = Random.Range(0,2);
             for (int j = 0; j < 15; j++)
             {
-                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(start_x_1, 0), new Vector2(1, 100), new Vector3(0, 0, 0), new Vector2(start_x_1, 0), new Vector2(1, 100), new Vector3(0, 0, 0), 1f, 0.5f, 20f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(start_x_1, 0), new Vector2(1, 100), new Vector3(0, 0, 0), new Vector2(start_x_1, 0), new Vector2(1, 100), new Vector3(0, 0, 0), 1f, 0.5f, 10f, 0f));
                 start_x_1 += 4f;
             }
             if(random_num == 1)
             {
-                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, -4), new Vector2(100, 4), new Vector3(0, 0, 0), new Vector2(0, -4), new Vector2(100, 4), new Vector3(0, 0, 0), 1f, 0.5f, 20f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, -4), new Vector2(100, 4), new Vector3(0, 0, 0), new Vector2(0, -4), new Vector2(100, 4), new Vector3(0, 0, 0), 1f, 0.5f, 10f, 0f));
             }
             else
             {
-                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, 1), new Vector2(100, 4), new Vector3(0, 0, 0), new Vector2(0, 1), new Vector2(100, 4), new Vector3(0, 0, 0), 1f, 0.5f, 20f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, 1), new Vector2(100, 4), new Vector3(0, 0, 0), new Vector2(0, 1), new Vector2(100, 4), new Vector3(0, 0, 0), 1f, 0.5f, 10f, 0f));
             }
             yield return new WaitForSeconds(1f);
             random_num = Random.Range(0,2);
             for (int j = 0; j < 15; j++)
             {
-                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(start_x_2, 0), new Vector2(1, 100), new Vector3(0, 0, 0), new Vector2(start_x_2, 0), new Vector2(1, 100), new Vector3(0, 0, 0), 1f, 0.5f, 20f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(start_x_2, 0), new Vector2(1, 100), new Vector3(0, 0, 0), new Vector2(start_x_2, 0), new Vector2(1, 100), new Vector3(0, 0, 0), 1f, 0.5f, 10f, 0f));
                 start_x_2 += 4f;
             }
             if(random_num == 1)
             {
-                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, -4), new Vector2(100, 4), new Vector3(0, 0, 0), new Vector2(0, -4), new Vector2(100, 4), new Vector3(0, 0, 0), 1f, 0.5f, 20f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, -4), new Vector2(100, 4), new Vector3(0, 0, 0), new Vector2(0, -4), new Vector2(100, 4), new Vector3(0, 0, 0), 1f, 0.5f, 10f, 0f));
             }
             else
             {
-                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, 1), new Vector2(100, 4), new Vector3(0, 0, 0), new Vector2(0, 1), new Vector2(100, 4), new Vector3(0, 0, 0), 1f, 0.5f, 20f, 0f));
+                StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, 1), new Vector2(100, 4), new Vector3(0, 0, 0), new Vector2(0, 1), new Vector2(100, 4), new Vector3(0, 0, 0), 1f, 0.5f, 10f, 0f));
             }
             yield return new WaitForSeconds(1f);
             if(Boss_HP <= 0)
@@ -1696,7 +1722,7 @@ public class PlayerTemporary : MonoBehaviour
 
     private IEnumerator Boss_Pattern_5_3()
     {
-        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, 0), new Vector2(38, 100), new Vector3(0, 0, 0), new Vector2(0, 0), new Vector2(38, 100), new Vector3(0, 0, 0), 3f, 5f, 1000f, 0f));
+        StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(0, 0), new Vector2(38, 100), new Vector3(0, 0, 0), new Vector2(0, 0), new Vector2(38, 100), new Vector3(0, 0, 0), 3f, 5f, 10000f, 0f));
         if(Boss_HP <= 0)
         {
             yield break;
@@ -1708,5 +1734,28 @@ public class PlayerTemporary : MonoBehaviour
         }
         Boss_Acting = false;
         hurting = false;
+    }
+
+    private IEnumerator Boss_Pattern_5_4()
+    {
+        float duration = 3f;
+        for(int i = 0; i <10; i++)
+        {
+            StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(20, 5), new Vector2(100, 1), new Vector3(0, 0, 10 + i * 2), new Vector2(20, 5), new Vector2(100, 1), new Vector3(0, 0, 10 + i * 2), duration, 0.5f, 10f, 0f));
+            duration -= 0.1f;
+            yield return new WaitForSeconds(0.1f);
+        }
+        for (int i = 0; i < 10; i++)
+        {
+            StartCoroutine(EnemyAttack_1("attack_down", "real_attack_down", new Vector2(-20, 5), new Vector2(100, 1), new Vector3(0, 0, -10 - i * 2), new Vector2(-20, 5), new Vector2(100, 1), new Vector3(0, 0, -10 - i * 2), duration, 0.5f, 10f, 0f));
+            duration -= 0.1f;
+            yield return new WaitForSeconds(0.1f);
+        }
+        if (Boss_HP <= 0)
+        {
+            yield break;
+        }
+        yield return new WaitForSeconds(5f);
+        Boss_Acting = false;
     }
 }
