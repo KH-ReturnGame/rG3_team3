@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 
 public class Player : MonoBehaviour
 {
@@ -28,6 +29,7 @@ public class Player : MonoBehaviour
 
     [Header("평타 전진 설정")]
     [SerializeField] private float attackDashForce = 15f;
+    [SerializeField] private float DashForce = 15f;
 
     // combo 
     public int currentComboStack = 0;
@@ -35,14 +37,22 @@ public class Player : MonoBehaviour
     private float comboStackResetLimit = 1.5f;
     private int maxComboStack = 4;
 
-    private float attackCooldown = 0.4f;
+    public float attackCooldown = 0.36f;
+
+
+
+    private AudioSource audioSource;
+
+    [SerializeField] private AudioClip[] slashSounds; 
+
+
+
 
     // 공격 히트박스 & 이펙트 설정
     [Header("공격 히트박스 & 이펙트")]
     [SerializeField] private Transform attackPoint;
     [SerializeField] private Vector2 attackHitboxSize = new Vector2(1.5f, 1.2f);
     [SerializeField] private LayerMask enemyLayer;
-    [SerializeField] private GameObject hitVFXGroupPrefab;
     [SerializeField] private int damageAmount = 10;
 
     [Header("상태리스트")]
@@ -56,6 +66,7 @@ public class Player : MonoBehaviour
     void Awake()
     {
         spriteRenderOBJ = transform.Find("_SpriteRenderer");
+        audioSource = GetComponent<AudioSource>();
 
         body2d = GetComponent<Rigidbody2D>();
         spdr = spriteRenderOBJ.GetComponent<SpriteRenderer>();
@@ -101,14 +112,23 @@ public class Player : MonoBehaviour
 
     void FixedUpdate()
     {
-        if (!DebounceList.Contains("BasicAttackDash"))
-        {
-            body2d.linearVelocity = new Vector2(xInput * moveSpeed, body2d.linearVelocity.y);
-        }
+        launchMovement();
 
         animtr.SetFloat("yVelocity", body2d.linearVelocityY);
 
         directionInspection();
+    }
+
+    void launchMovement()
+    {
+        if (DebounceList.Contains("BasicAttackDash") || DebounceList.Contains("isDash"))
+        {
+            // 이동 코드를 실행하지 않고 바로 함수를 나감 (이동 차단)
+            return;
+        }
+
+        body2d.linearVelocity = new Vector2(xInput * moveSpeed, body2d.linearVelocity.y);
+
     }
 
     void OnDrawGizmos()
@@ -160,6 +180,8 @@ public class Player : MonoBehaviour
 
     private IEnumerator Jump()
     {
+        if (Stunlist.Count > 0) yield break;
+        if (DebounceList.Contains("isUsingMovement")) yield break;
         animtr.SetTrigger("isJumpTrigger");
         yield return new WaitForSeconds(.1f);
         body2d.linearVelocity = new Vector2(body2d.linearVelocity.x, jumpHeight);
@@ -167,13 +189,26 @@ public class Player : MonoBehaviour
 
     private IEnumerator Dash()
     {
-        float dir = spdr.flipX ? -1f : 1f;
+        if (Cooldownlist.Contains("Dash")) yield break;
+        if (DebounceList.Contains("isUsingMovement")) yield break;
+        if (Stunlist.Count > 0) yield break;
+        float dir;
+        if (isfacingRight == true)
+            dir = 1f;
+        else
+            dir = -1f;
+
 
         animtr.SetTrigger("isDash");
         yield return new WaitForSeconds(0.2f);
 
-        body2d.linearVelocity = new Vector2(0, body2d.linearVelocity.y);
-        body2d.AddForce(new Vector2(dir * 80f, 0), ForceMode2D.Impulse);
+        Utility.DataManagement.ListManagement.AddData("Dash", Cooldownlist, .5f);
+
+        Utility.DataManagement.ListManagement.AddData("isDash", DebounceList, 0.3f);
+
+
+        body2d.linearVelocity = new Vector2(0f, body2d.linearVelocity.y);
+        body2d.AddForce(new Vector2(dir * DashForce, 0f), ForceMode2D.Impulse);
     }
 
     // ★ [수정] 평타 공격 함수
@@ -182,6 +217,7 @@ public class Player : MonoBehaviour
         // 1. 스턴 상태이거나 이미 공격 중(데바운스) 또는 쿨다운 중이면 공격 금지!
         if (Stunlist.Count > 0) return;
         if (DebounceList.Contains("BasicAttackDash")) return;
+        if (DebounceList.Contains("isUsingMovement")) return;
         if (Cooldownlist.Contains("Attack")) return;
 
         // 2. 콤보 스택 증가
@@ -199,9 +235,15 @@ public class Player : MonoBehaviour
 
         // 쿨다운 등록 (한 번만 적용)
         Utility.DataManagement.ListManagement.AddData("Attack", Cooldownlist, currentCooldown);
+        Utility.DataManagement.ListManagement.AddData("isUsingMovement", DebounceList, currentCooldown - currentCooldown/10);
+
 
         lastComboChangeTime = Time.time;
         Debug.Log("Combo : " + currentComboStack);
+
+        audioSource.pitch = Random.Range(0.7f, 1.2f);
+        PlayRandomSlashSound();
+        audioSource.pitch = 1.0f;
 
         // 애니메이터 설정
         animtr.SetInteger("Combo", currentComboStack == 0 ? maxComboStack : currentComboStack);
@@ -215,6 +257,27 @@ public class Player : MonoBehaviour
     }
 
     // ★ [수정] 대쉬 후 타격 처리 코루틴
+
+    private void PlayRandomSlashSound()
+    {
+        if (slashSounds != null && slashSounds.Length > 0)
+        {
+            // 1. 배열 크기 안에서 랜덤 인덱스 뽑기
+            int randomIndex = Random.Range(0, slashSounds.Length);
+            AudioClip selectedClip = slashSounds[randomIndex];
+
+            if (selectedClip != null)
+            {
+                // 2. 피치 변주 (0.85 ~ 1.15)
+             
+
+                // 3. 랜덤 오디오 원샷 재생
+                audioSource.PlayOneShot(selectedClip);
+            }
+        }
+    }
+
+
     private IEnumerator PerformAttackDash()
     {
         float dir = isfacingRight ? 1f : -1f;
@@ -249,7 +312,12 @@ public class Player : MonoBehaviour
 
             if (VFXHandler.Instance != null)
             {
-                VFXHandler.Instance.PlayEffect(enemy.transform.position, hitVFXGroupPrefab);
+                VFXHandler.Instance.PlayEffect("playerAttackHit", enemy.transform.position, 0.8f);
+            }
+
+            if (SoundHandler.Instance != null)
+            {
+                SoundHandler.Instance.PlayHitSoundAtPosition(enemy.transform.position);
             }
         }
     }
